@@ -107,7 +107,7 @@ def obstacle_loss(model, t_list, obs):
 
     buffer = 0.2        # Buffer zone
 
-    # Obstacle avoidance loss (positive within a certain range of the obstacle center)
+    # Obstacle avoidance loss (positive within a certain range of the obstacle)
     violation = torch.relu(r - d + buffer)
     return torch.mean(violation**2)
 

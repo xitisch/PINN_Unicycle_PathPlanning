@@ -69,10 +69,6 @@ def hard_bc_transform(t, nn_data, BC):
     return x, y, theta, v_raw
 
 def physics_loss(model, t_list, BC):
-    """
-    Input: model, list of time, boundary conditions description (x0,y0,xT,yT)
-    Ouptut: loss function value of current position. 
-    """
     nn_input = model(t_list)
     x, y, theta, v = hard_bc_transform(t_list, nn_input, BC)
 
@@ -93,10 +89,6 @@ def physics_loss(model, t_list, BC):
     return L_phys
 
 def obstacle_loss(model, t_list, obs):
-    """
-    Input: model, list of time, circular obstacle description (x,y,r)
-    Ouptut: loss function value of current position. 
-    """
     nn_input = model(t_list)
     x, y, _, _ = hard_bc_transform(t_list, nn_input, BC)
 
@@ -105,10 +97,9 @@ def obstacle_loss(model, t_list, obs):
     r = obs[2]
     d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
 
-    buffer = 0.2        # Buffer zone
+    buffer = 0.5
 
-    # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = torch.relu(r - d + buffer)
+    violation = torch.relu(r - d - )
     return torch.mean(violation**2)
 
 # Training setup:
@@ -159,6 +150,7 @@ with torch.no_grad():
     nn_input = model(t_eval)
     x, y, theta, v = hard_bc_transform(t_eval, nn_input, BC)
 
+    # Check boundary conditions (should be exact up to float precision)
     t0 = torch.tensor([[0.0]], dtype=torch.float32, device=device)
     tT = torch.tensor([[T]], dtype=torch.float32, device=device)
     x0p, y0p, *_ = hard_bc_transform(t0, model(t0), BC)

@@ -69,12 +69,8 @@ def hard_bc_transform(t, nn_data, BC):
     return x, y, theta, v_raw
 
 def physics_loss(model, t_list, BC):
-    """
-    Input: model, list of time, boundary conditions description (x0,y0,xT,yT)
-    Ouptut: loss function value of current position. 
-    """
     nn_input = model(t_list)
-    x, y, theta, v = hard_bc_transform(t_list, nn_input, BC)
+    x, y, theta, v = hard_bc_transform(nn_input, nn_input, BC)
 
     x_t = derivative(x, t_list)
     y_t = derivative(y, t_list)
@@ -93,22 +89,14 @@ def physics_loss(model, t_list, BC):
     return L_phys
 
 def obstacle_loss(model, t_list, obs):
-    """
-    Input: model, list of time, circular obstacle description (x,y,r)
-    Ouptut: loss function value of current position. 
-    """
     nn_input = model(t_list)
-    x, y, _, _ = hard_bc_transform(t_list, nn_input, BC)
+    x, y, _, _ = hard_bc_transform(nn_input, nn_input, BC)
 
     x_c = obs[0]
-    y_c = obs[1]
-    r = obs[2]
+    y_c
+    r = obs
     d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
-
-    buffer = 0.2        # Buffer zone
-
-    # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = torch.relu(r - d + buffer)
+    violation = torch.relu(r - d)
     return torch.mean(violation**2)
 
 # Training setup:
@@ -137,7 +125,7 @@ x0, y0 = 0.0, 0.0
 xT, yT = 5.0, 1.0
 
 BC = [x0,y0,xT,yT]
-x_c, y_c, r = 3, 0.5, 1
+x_c, y_c, r = -1, -1, 5
 obs = [x_c, y_c, r]
 
 for epoch in range(num_epochs):
@@ -145,9 +133,9 @@ for epoch in range(num_epochs):
 
     # Compute losses
     L_phys = physics_loss(model, t_list, BC)
-    L_obst = obstacle_loss(model, t_list, obs)
+    L_obst = obstacle_loss(model, t_list, BC)
 
-    loss = L_phys + 10 * L_obst
+    loss = L_phys
     loss.backward()
     optimizer.step()
 
@@ -159,6 +147,7 @@ with torch.no_grad():
     nn_input = model(t_eval)
     x, y, theta, v = hard_bc_transform(t_eval, nn_input, BC)
 
+    # Check boundary conditions (should be exact up to float precision)
     t0 = torch.tensor([[0.0]], dtype=torch.float32, device=device)
     tT = torch.tensor([[T]], dtype=torch.float32, device=device)
     x0p, y0p, *_ = hard_bc_transform(t0, model(t0), BC)
@@ -172,12 +161,6 @@ plt.plot(x.cpu().numpy(), y.cpu().numpy())
 plt.scatter([x0, xT], [y0, yT])
 plt.title("PINN unicycle path w/ hard x,y BCs)")
 plt.xlabel("x"); plt.ylabel("y"); plt.axis("equal")
-
-ax = plt.gca()
-obstacle_circle = plt.Circle((x_c, y_c), r, color='r', fill=True, alpha=0.3, label='Obstacle')
-ax.add_patch(obstacle_circle)
-plt.legend()
-
 plt.show()
 
 # -----------------------------------
