@@ -110,11 +110,11 @@ def obstacle_loss(model, t_list, obs):
 # Repeateldly adjusting the NN's parameters so that 
 # its output trajectory satisfies physics and constraints by minimizing loss functions.
 
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 # lr = eta, the factors that is multiplied with the gradient of the loss. 
 
 lambda_phys = 1
-lambda_obs = 1
+lambda_obs = 0.1
 lambda_optim = 0
 
 num_epochs = 2000       # Num. of iterations of training

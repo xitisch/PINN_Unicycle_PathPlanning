@@ -114,7 +114,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 # lr = eta, the factors that is multiplied with the gradient of the loss. 
 
 lambda_phys = 1
-lambda_obs = 1
+lambda_obs = 0.1
 lambda_optim = 0
 
 num_epochs = 2000       # Num. of iterations of training

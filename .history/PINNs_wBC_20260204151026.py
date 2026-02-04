@@ -110,7 +110,7 @@ def obstacle_loss(model, t_list, obs):
 # Repeateldly adjusting the NN's parameters so that 
 # its output trajectory satisfies physics and constraints by minimizing loss functions.
 
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 # lr = eta, the factors that is multiplied with the gradient of the loss. 
 
 lambda_phys = 1
@@ -142,7 +142,7 @@ for epoch in range(num_epochs):
     L_phys = physics_loss(model, t_list, BC)
     L_obst = obstacle_loss(model, t_list, obs)
 
-    loss = lambda_phys * L_phys + lambda_obs * L_obst
+    loss = L_phys + 10 * L_obst
     loss.backward()
     optimizer.step()
 

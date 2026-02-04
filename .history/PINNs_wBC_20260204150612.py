@@ -15,12 +15,6 @@ class PINN(nn.Module):
         layers += [nn.Linear(width, out_dim)]
         self.net = nn.Sequential(*layers)
 
-        """# Optional: small init helps stability in PINNs
-        for m in self.net:
-            if isinstance(m, nn.Linear):
-                nn.init.xavier_uniform_(m.weight)
-                nn.init.zeros_(m.bias)"""
-
     def forward(self, t):
         return self.net(t)
 
@@ -85,6 +79,11 @@ def physics_loss(model, t_list, BC):
     # Physics loss (mean squared residuals)
     L_phys = (r_x**2).mean() + (r_y**2).mean()
 
+    # Optional regularization for smoother theta/v (helps training)
+    """theta_t = derivative(theta, t_list)
+    v_t = derivative(v, t_list)
+    L_reg = 1e-3 * (theta_t**2).mean() + 1e-3 * (v_t**2).mean()"""
+
     return L_phys
 
 def obstacle_loss(model, t_list, obs):
@@ -110,11 +109,11 @@ def obstacle_loss(model, t_list, obs):
 # Repeateldly adjusting the NN's parameters so that 
 # its output trajectory satisfies physics and constraints by minimizing loss functions.
 
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 # lr = eta, the factors that is multiplied with the gradient of the loss. 
 
 lambda_phys = 1
-lambda_obs = 1
+lambda_ic = 1
 lambda_optim = 0
 
 num_epochs = 2000       # Num. of iterations of training
@@ -142,7 +141,7 @@ for epoch in range(num_epochs):
     L_phys = physics_loss(model, t_list, BC)
     L_obst = obstacle_loss(model, t_list, obs)
 
-    loss = lambda_phys * L_phys + lambda_obs * L_obst
+    loss = L_phys + 10 * L_obst
     loss.backward()
     optimizer.step()
 
