@@ -87,7 +87,7 @@ def physics_loss(model, t_list, BC):
 
     return L_phys
 
-def obstacle_loss(model, t_list, obs):
+def obstacle_loss(model, t_list, obs, BC):
     """
     Input: model, list of time, circular obstacle description (x,y,r)
     Ouptut: loss function value of current position. 
@@ -106,6 +106,46 @@ def obstacle_loss(model, t_list, obs):
     violation = torch.relu(r - d + buffer)
     return torch.mean(violation**2)
 
+def theta_loss(model, t_list, BC):
+    """
+    JUST A NOTE: WE COULD DEFINE A MAXIMIMUM VALUE OF KAPPA IN ORDER TO NOT TURN TO MUCH. (DELETE LATER) 
+    Input: model, list of time, boundary conditions description (x0,y0,xT,yT)
+    Ouptut: loss function value of the curvature. 
+    """
+    nn_input = model(t_list)
+    x, y, theta, v = hard_bc_transform(t_list, nn_input, BC)
+
+    x_t = derivative(x, t_list)
+    y_t = derivative(y, t_list)
+    x_tt = derivative(x_t, t_list)
+    y_tt = derivative(y_t, t_list)
+    theta_t = derivative(theta, t_list)
+
+    num = x_t * y_tt - y_t * x_tt
+    den = (x_t**2 + y_t**2)**(3/2)
+
+    K = num / den
+
+    r = theta_t - (K * v)
+
+    return (r**2).mean()
+
+def length_loss(model, t_list, BC):
+    """
+    
+    Input: model, list of time, boundary conditions description (x0,y0,xT,yT)
+    Ouptut: loss function value of the length. 
+    """
+    nn_input = model(t_list)
+    x, y, _, _ = hard_bc_transform(t_list, nn_input, BC)
+
+    x_t = derivative(x, t_list)
+    y_t = derivative(y, t_list)
+
+    sqrt = torch.sqrt(x_t**2 + y_t**2)
+
+    return torch.trapz(sqrt.squeeze(), t_list.squeeze())
+
 # Training setup:
 # Repeateldly adjusting the NN's parameters so that 
 # its output trajectory satisfies physics and constraints by minimizing loss functions.
@@ -114,8 +154,10 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 # lr = eta, the factors that is multiplied with the gradient of the loss. 
 
 lambda_phys = 1
-lambda_obs = 1
+lambda_obs = 2
 lambda_optim = 0
+lambda_theta = 0.5
+lambda_length = 0.1
 
 num_epochs = 2000       # Num. of iterations of training
 print_every = 200       # Print every 200 iterations
@@ -140,9 +182,11 @@ for epoch in range(num_epochs):
 
     # Compute losses
     L_phys = physics_loss(model, t_list, BC)
-    L_obst = obstacle_loss(model, t_list, obs)
+    L_obst = obstacle_loss(model, t_list, obs, BC)
+    L_theta = theta_loss(model, t_list, BC)
+    L_length = length_loss(model, t_list, BC)
 
-    loss = lambda_phys * L_phys + lambda_obs * L_obst
+    loss = lambda_phys * L_phys + lambda_obs * L_obst + lambda_theta * L_theta
     loss.backward()
     optimizer.step()
 
@@ -169,8 +213,15 @@ plt.title("PINN unicycle path w/ hard x,y BCs)")
 plt.xlabel("x"); plt.ylabel("y"); plt.axis("equal")
 
 ax = plt.gca()
+("""
 obstacle_circle = plt.Circle((x_c, y_c), r, color='r', fill=True, alpha=0.3, label='Obstacle')
 ax.add_patch(obstacle_circle)
+""")
+w = 1.5 
+h = 1.0
+
+rect = patches.Rectangle((x_c-w/2, y_c-h/2), w, h)
+ax.add_patch(rect)
 plt.legend()
 
 plt.show()
