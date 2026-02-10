@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 torch.manual_seed(0)
 device = "cpu"
