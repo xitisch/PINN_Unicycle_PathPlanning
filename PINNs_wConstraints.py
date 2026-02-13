@@ -191,7 +191,7 @@ xmin = x_c - w/2
 xmax = x_c + w/2
 ymin = y_c - h/2
 ymax = y_c + h/2
-rect = [xmin, xmax, ymin, ymax]
+obs = [xmin, xmax, ymin, ymax]
 
 for epoch in range(num_epochs):
     optimizer.zero_grad()
