@@ -112,26 +112,6 @@ def obstacle_loss(model, t_list, obs, BC):
     violation = soft_relu(r - d + buffer, k = 5) 
     return torch.mean(violation**2)
 
-def obstacle_loss(model, t_list, obs, BC):
-    """
-    Input: model, list of time, circular obstacle description (x,y,r)
-    Ouptut: loss function value of current position. 
-    """
-    nn_input = model(t_list)
-    x, y, _, _, _ = hard_bc_transform(t_list, nn_input, BC)
-
-    x_min = obs[0]
-    x_max = obs[1]
-    y_min = obs[2]
-    y_max = obs[3]
-    d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
-
-    buffer = 0.0        # Buffer zone
-
-    # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = soft_relu(r - d + buffer, k = 5) 
-    return torch.mean(violation**2)
-
 def theta_loss(model, t_list, BC):
     """
     

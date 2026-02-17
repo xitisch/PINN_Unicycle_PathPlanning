@@ -112,26 +112,6 @@ def obstacle_loss(model, t_list, obs, BC):
     violation = soft_relu(r - d + buffer, k = 5) 
     return torch.mean(violation**2)
 
-def obstacle_loss(model, t_list, obs, BC):
-    """
-    Input: model, list of time, circular obstacle description (x,y,r)
-    Ouptut: loss function value of current position. 
-    """
-    nn_input = model(t_list)
-    x, y, _, _, _ = hard_bc_transform(t_list, nn_input, BC)
-
-    x_min = obs[0]
-    x_max = obs[1]
-    y_min = obs[2]
-    y_max = obs[3]
-    d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
-
-    buffer = 0.0        # Buffer zone
-
-    # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = soft_relu(r - d + buffer, k = 5) 
-    return torch.mean(violation**2)
-
 def theta_loss(model, t_list, BC):
     """
     
@@ -215,15 +195,14 @@ ymin = y_c - h/2
 ymax = y_c + h/2
 obs = [xmin, xmax, ymin, ymax]
 
-def soft_relu(list,k=2):
+def soft_relu(x,y,k=2):
     return (nn.functional.softplus(list*k)) / k
 
-def lse_max(x, y, k=2):
-    sum_stack = torch.stack(k*x,k*y,dim=0)
-    return torch.logsumexp(sum_stack, dim=0) / k
+def lse_max(list, k=2):
+    return torch.logsumexp(k*list) / k
 
-def lse_min(x, y, k=2):
-    return -(lse_max(-x, -y, k))
+def lse_min(list, k=2):
+    return - lse_max(-list,k)
 
 def rect_sdf(x, y, xmin, xmax, ymin, ymax):
     cx = 0.5 * (xmin + xmax)
@@ -243,7 +222,7 @@ def rect_sdf(x, y, xmin, xmax, ymin, ymax):
     outside = torch.sqrt(ox**2 + oy**2)
 
     # inside term (negative or 0)
-    inside = lse_min(lse_max(qx, qy), torch.zeros_like(qx))
+    inside = torch.minimum(torch.maximum(qx, qy), torch.zeros_like(qx))
 
     return outside + inside  # signed distance
 
