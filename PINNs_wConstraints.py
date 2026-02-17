@@ -1,3 +1,4 @@
+
 import torch
 import torch.nn as nn
 import numpy as np
@@ -99,9 +100,10 @@ def obstacle_loss(model, t_list, obs, BC):
     nn_input = model(t_list)
     x, y, _, _, _ = hard_bc_transform(t_list, nn_input, BC)
 
-    x_c = obs[0]
-    y_c = obs[1]
-    r = obs[2]
+    x_min = obs[0]
+    x_max = obs[1]
+    y_min = obs[2]
+    y_max = obs[3]
     d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
 
     buffer = 0.2        # Buffer zone
@@ -182,11 +184,11 @@ BC = [x0,y0,xT,yT]
 
 # Circle
 x_c, y_c, r = 3, 0.5, 1
-obs = [x_c, y_c, r]
+# obs = [x_c, y_c, r]
 
+ 
 # Rectangle 
-w = 1.5 
-h = 1.0
+w, h = 1.5, 1.0 
 xmin = x_c - w/2
 xmax = x_c + w/2
 ymin = y_c - h/2
@@ -233,10 +235,8 @@ ax = plt.gca()
 obstacle_circle = plt.Circle((x_c, y_c), r, color='r', fill=True, alpha=0.3, label='Obstacle')
 ax.add_patch(obstacle_circle)
 """)
-w = 1.5 
-h = 1.0
 
-rect = patches.Rectangle((x_c-w/2, y_c-h/2), w, h)
+rect = patches.Rectangle((xmin, ymin), w, h)
 ax.add_patch(rect)
 
 plt.legend()
@@ -268,4 +268,4 @@ plt.title("Velocity v(t)")
 plt.grid(True)
 
 plt.tight_layout()
-plt.show()show()
+plt.show()
