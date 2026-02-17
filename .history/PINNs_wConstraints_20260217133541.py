@@ -198,9 +198,6 @@ obs = [xmin, xmax, ymin, ymax]
 def soft_relu(list,k=2):
     return (nn.functional.softplus(list*k)) / k
 
-def lse_max():
-    return torch.logsumexp(k*list)
-
 def rect_sdf(x, y, xmin, xmax, ymin, ymax):
     cx = 0.5 * (xmin + xmax)
     cy = 0.5 * (ymin + ymax)

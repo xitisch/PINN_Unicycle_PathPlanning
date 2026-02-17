@@ -106,10 +106,10 @@ def obstacle_loss(model, t_list, obs, BC):
     y_max = obs[3]
     d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
 
-    buffer = 0.0        # Buffer zone
+    buffer = 0.05        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = soft_relu(r - d + buffer, k = 5) 
+    violation = torch.relu(r - d + buffer)
     return torch.mean(violation**2)
 
 def theta_loss(model, t_list, BC):
@@ -162,10 +162,10 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 # lr = eta, the factors that is multiplied with the gradient of the loss. 
 
 lambda_phys = 1
-lambda_obs = 1
+lambda_obs = 2
 lambda_optim = 0
 lambda_theta = 0.5
-lambda_length = 0
+lambda_length = 0.1
 
 num_epochs = 2000       # Num. of iterations of training
 print_every = 200       # Print every 200 iterations
@@ -195,27 +195,19 @@ ymin = y_c - h/2
 ymax = y_c + h/2
 obs = [xmin, xmax, ymin, ymax]
 
-def soft_relu(list,k=2):
-    return (nn.functional.softplus(list*k)) / k
-
-def lse_max():
-    return torch.logsumexp(k*list)
-
 def rect_sdf(x, y, xmin, xmax, ymin, ymax):
     cx = 0.5 * (xmin + xmax)
     cy = 0.5 * (ymin + ymax)
     bx = 0.5 * (xmax - xmin)  # half width
     by = 0.5 * (ymax - ymin)  # half height
 
-    # q = |p-c| - b
+    # q = |r-c| - b
     qx = torch.abs(x - cx) - bx
     qy = torch.abs(y - cy) - by
 
     # outside distance
-    ox = nn.Softplus()(qx)
-    oy =nn.Softplus()(qy)
-    # ox = torch.relu(qx)
-    # oy = torch.relu(qy)
+    ox = torch.relu(qx)
+    oy = torch.relu(qy)
     outside = torch.sqrt(ox**2 + oy**2)
 
     # inside term (negative or 0)
@@ -260,14 +252,13 @@ plt.title("PINN unicycle path w/ hard x,y BCs)")
 plt.xlabel("x"); plt.ylabel("y"); plt.axis("equal")
 
 ax = plt.gca()
-
+("""
 obstacle_circle = plt.Circle((x_c, y_c), r, color='r', fill=True, alpha=0.3, label='Obstacle')
 ax.add_patch(obstacle_circle)
+""")
 
-"""
 rect = patches.Rectangle((xmin, ymin), w, h)
 ax.add_patch(rect)
-"""
 
 plt.legend()
 

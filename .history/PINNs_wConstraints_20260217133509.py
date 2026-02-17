@@ -162,7 +162,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 # lr = eta, the factors that is multiplied with the gradient of the loss. 
 
 lambda_phys = 1
-lambda_obs = 1
+lambda_obs = 3
 lambda_optim = 0
 lambda_theta = 0.5
 lambda_length = 0
@@ -197,9 +197,6 @@ obs = [xmin, xmax, ymin, ymax]
 
 def soft_relu(list,k=2):
     return (nn.functional.softplus(list*k)) / k
-
-def lse_max():
-    return torch.logsumexp(k*list)
 
 def rect_sdf(x, y, xmin, xmax, ymin, ymax):
     cx = 0.5 * (xmin + xmax)

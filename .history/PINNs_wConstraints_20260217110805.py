@@ -1,4 +1,3 @@
-
 import torch
 import torch.nn as nn
 import numpy as np
@@ -100,21 +99,19 @@ def obstacle_loss(model, t_list, obs, BC):
     nn_input = model(t_list)
     x, y, _, _, _ = hard_bc_transform(t_list, nn_input, BC)
 
-    x_min = obs[0]
-    x_max = obs[1]
-    y_min = obs[2]
-    y_max = obs[3]
+    x_c = obs[0]
+    y_c = obs[1]
+    r = obs[2]
     d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
 
-    buffer = 0.0        # Buffer zone
+    buffer = 0.2        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = soft_relu(r - d + buffer, k = 5) 
+    violation = torch.relu(r - d + buffer)
     return torch.mean(violation**2)
 
 def theta_loss(model, t_list, BC):
     """
-    
     Input: model, list of time, boundary conditions description (x0,y0,xT,yT)
     Ouptut: loss function value of the curvature. 
     """
@@ -162,7 +159,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 # lr = eta, the factors that is multiplied with the gradient of the loss. 
 
 lambda_phys = 1
-lambda_obs = 1
+lambda_obs = 2
 lambda_optim = 0
 lambda_theta = 0.5
 lambda_length = 0
@@ -184,45 +181,16 @@ BC = [x0,y0,xT,yT]
 
 # Circle
 x_c, y_c, r = 3, 0.5, 1
-# obs = [x_c, y_c, r]
+obs = [x_c, y_c, r]
 
- 
 # Rectangle 
-w, h = 1.5, 1.0 
+w = 1.5 
+h = 1.0
 xmin = x_c - w/2
 xmax = x_c + w/2
 ymin = y_c - h/2
 ymax = y_c + h/2
 obs = [xmin, xmax, ymin, ymax]
-
-def soft_relu(list,k=2):
-    return (nn.functional.softplus(list*k)) / k
-
-def lse_max():
-    return torch.logsumexp(k*list)
-
-def rect_sdf(x, y, xmin, xmax, ymin, ymax):
-    cx = 0.5 * (xmin + xmax)
-    cy = 0.5 * (ymin + ymax)
-    bx = 0.5 * (xmax - xmin)  # half width
-    by = 0.5 * (ymax - ymin)  # half height
-
-    # q = |p-c| - b
-    qx = torch.abs(x - cx) - bx
-    qy = torch.abs(y - cy) - by
-
-    # outside distance
-    ox = nn.Softplus()(qx)
-    oy =nn.Softplus()(qy)
-    # ox = torch.relu(qx)
-    # oy = torch.relu(qy)
-    outside = torch.sqrt(ox**2 + oy**2)
-
-    # inside term (negative or 0)
-    inside = torch.minimum(torch.maximum(qx, qy), torch.zeros_like(qx))
-
-    return outside + inside  # signed distance
-
 
 for epoch in range(num_epochs):
     optimizer.zero_grad()
@@ -260,14 +228,15 @@ plt.title("PINN unicycle path w/ hard x,y BCs)")
 plt.xlabel("x"); plt.ylabel("y"); plt.axis("equal")
 
 ax = plt.gca()
-
+("""
 obstacle_circle = plt.Circle((x_c, y_c), r, color='r', fill=True, alpha=0.3, label='Obstacle')
 ax.add_patch(obstacle_circle)
+""")
+w = 1.5 
+h = 1.0
 
-"""
-rect = patches.Rectangle((xmin, ymin), w, h)
+rect = patches.Rectangle((x_c-w/2, y_c-h/2), w, h)
 ax.add_patch(rect)
-"""
 
 plt.legend()
 

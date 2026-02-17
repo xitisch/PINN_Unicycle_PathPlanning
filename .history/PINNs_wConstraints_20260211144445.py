@@ -1,4 +1,3 @@
-
 import torch
 import torch.nn as nn
 import numpy as np
@@ -9,7 +8,7 @@ torch.manual_seed(0)
 device = "cpu"
 
 class PINN(nn.Module):
-    def __init__(self, in_dim=1, out_dim=5, width=64, depth=4):
+    def __init__(self, in_dim=1, out_dim=4, width=64, depth=4):
         super().__init__()
         layers = [nn.Linear(in_dim, width), nn.Tanh()]
         for _ in range(depth - 1):
@@ -28,7 +27,7 @@ class PINN(nn.Module):
 
 # Network outputs: raw_xhat, raw_yhat, theta, v_raw
 # We'll enforce x,y BCs via transformation; theta and v are free ().
-model = PINN(out_dim=5)
+model = PINN(out_dim=4)
 
 def derivative(y,x):
     """
@@ -50,7 +49,6 @@ def hard_bc_transform(t, nn_data, BC):
     raw_yhat = nn_data[:, 1:2]
     theta    = nn_data[:, 2:3]
     v_raw    = nn_data[:, 3:4]
-    omega    = nn_data[:, 4:5]
     
     # Boundary Conditions
     x0 = BC[0]
@@ -69,7 +67,7 @@ def hard_bc_transform(t, nn_data, BC):
     # v = torch.tanh(v_raw)
     # Bounding of curvature
     # Kappa tbd
-    return x, y, theta, v_raw, omega
+    return x, y, theta, v_raw
 
 def physics_loss(model, t_list, BC):
     """
@@ -77,18 +75,16 @@ def physics_loss(model, t_list, BC):
     Ouptut: loss function value of current position. 
     """
     nn_input = model(t_list)
-    x, y, theta, v, omega = hard_bc_transform(t_list, nn_input, BC)
+    x, y, theta, v = hard_bc_transform(t_list, nn_input, BC)
 
     x_t = derivative(x, t_list)
     y_t = derivative(y, t_list)
-    theta_t = derivative(theta, t_list)
 
     r_x = x_t - v * torch.cos(theta)
     r_y = y_t - v * torch.sin(theta)
-    r_t = theta_t - omega
 
     # Physics loss (mean squared residuals)
-    L_phys = (r_x**2).mean() + (r_y**2).mean() + (r_t**2).mean()
+    L_phys = (r_x**2).mean() + (r_y**2).mean()
 
     return L_phys
 
@@ -98,28 +94,27 @@ def obstacle_loss(model, t_list, obs, BC):
     Ouptut: loss function value of current position. 
     """
     nn_input = model(t_list)
-    x, y, _, _, _ = hard_bc_transform(t_list, nn_input, BC)
+    x, y, _, _ = hard_bc_transform(t_list, nn_input, BC)
 
-    x_min = obs[0]
-    x_max = obs[1]
-    y_min = obs[2]
-    y_max = obs[3]
+    x_c = obs[0]
+    y_c = obs[1]
+    r = obs[2]
     d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
 
-    buffer = 0.0        # Buffer zone
+    buffer = 0.2        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = soft_relu(r - d + buffer, k = 5) 
+    violation = torch.relu(r - d + buffer)
     return torch.mean(violation**2)
 
 def theta_loss(model, t_list, BC):
     """
-    
+    JUST A NOTE: WE COULD DEFINE A MAXIMIMUM VALUE OF KAPPA IN ORDER TO NOT TURN TO MUCH. (DELETE LATER) 
     Input: model, list of time, boundary conditions description (x0,y0,xT,yT)
     Ouptut: loss function value of the curvature. 
     """
     nn_input = model(t_list)
-    x, y, theta, v, _ = hard_bc_transform(t_list, nn_input, BC)
+    x, y, theta, v = hard_bc_transform(t_list, nn_input, BC)
 
     x_t = derivative(x, t_list)
     y_t = derivative(y, t_list)
@@ -127,10 +122,8 @@ def theta_loss(model, t_list, BC):
     y_tt = derivative(y_t, t_list)
     theta_t = derivative(theta, t_list)
 
-    safety = 1e-6 # To ensure that we the denominator isn't 0.
-
     num = x_t * y_tt - y_t * x_tt
-    den = (x_t**2 + y_t**2 + safety)**(3/2)
+    den = (x_t**2 + y_t**2)**(3/2)
 
     K = num / den
 
@@ -145,7 +138,7 @@ def length_loss(model, t_list, BC):
     Ouptut: loss function value of the length. 
     """
     nn_input = model(t_list)
-    x, y, _, _, _ = hard_bc_transform(t_list, nn_input, BC)
+    x, y, _, _ = hard_bc_transform(t_list, nn_input, BC)
 
     x_t = derivative(x, t_list)
     y_t = derivative(y, t_list)
@@ -162,10 +155,10 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 # lr = eta, the factors that is multiplied with the gradient of the loss. 
 
 lambda_phys = 1
-lambda_obs = 1
+lambda_obs = 2
 lambda_optim = 0
 lambda_theta = 0.5
-lambda_length = 0
+lambda_length = 0.1
 
 num_epochs = 2000       # Num. of iterations of training
 print_every = 200       # Print every 200 iterations
@@ -180,49 +173,10 @@ t_list.requires_grad_(True)
 # Define BC
 x0, y0 = 0.0, 0.0
 xT, yT = 5.0, 1.0
+
 BC = [x0,y0,xT,yT]
-
-# Circle
 x_c, y_c, r = 3, 0.5, 1
-# obs = [x_c, y_c, r]
-
- 
-# Rectangle 
-w, h = 1.5, 1.0 
-xmin = x_c - w/2
-xmax = x_c + w/2
-ymin = y_c - h/2
-ymax = y_c + h/2
-obs = [xmin, xmax, ymin, ymax]
-
-def soft_relu(list,k=2):
-    return (nn.functional.softplus(list*k)) / k
-
-def lse_max():
-    return torch.logsumexp(k*list)
-
-def rect_sdf(x, y, xmin, xmax, ymin, ymax):
-    cx = 0.5 * (xmin + xmax)
-    cy = 0.5 * (ymin + ymax)
-    bx = 0.5 * (xmax - xmin)  # half width
-    by = 0.5 * (ymax - ymin)  # half height
-
-    # q = |p-c| - b
-    qx = torch.abs(x - cx) - bx
-    qy = torch.abs(y - cy) - by
-
-    # outside distance
-    ox = nn.Softplus()(qx)
-    oy =nn.Softplus()(qy)
-    # ox = torch.relu(qx)
-    # oy = torch.relu(qy)
-    outside = torch.sqrt(ox**2 + oy**2)
-
-    # inside term (negative or 0)
-    inside = torch.minimum(torch.maximum(qx, qy), torch.zeros_like(qx))
-
-    return outside + inside  # signed distance
-
+obs = [x_c, y_c, r]
 
 for epoch in range(num_epochs):
     optimizer.zero_grad()
@@ -233,7 +187,7 @@ for epoch in range(num_epochs):
     L_theta = theta_loss(model, t_list, BC)
     L_length = length_loss(model, t_list, BC)
 
-    loss = lambda_phys * L_phys + lambda_obs * L_obst + lambda_theta * L_theta + lambda_length * L_length
+    loss = lambda_phys * L_phys + lambda_obs * L_obst + lambda_theta * L_theta
     loss.backward()
     optimizer.step()
 
@@ -243,7 +197,7 @@ for epoch in range(num_epochs):
 t_eval = torch.linspace(0.0, T, 200, device=device).view(-1, 1)
 with torch.no_grad():
     nn_input = model(t_eval)
-    x, y, theta, v, omega = hard_bc_transform(t_eval, nn_input, BC)
+    x, y, theta, v = hard_bc_transform(t_eval, nn_input, BC)
 
     t0 = torch.tensor([[0.0]], dtype=torch.float32, device=device)
     tT = torch.tensor([[T]], dtype=torch.float32, device=device)
@@ -260,21 +214,18 @@ plt.title("PINN unicycle path w/ hard x,y BCs)")
 plt.xlabel("x"); plt.ylabel("y"); plt.axis("equal")
 
 ax = plt.gca()
-
+("""
 obstacle_circle = plt.Circle((x_c, y_c), r, color='r', fill=True, alpha=0.3, label='Obstacle')
 ax.add_patch(obstacle_circle)
+""")
+w = 1.5 
+h = 1.0
 
-"""
-rect = patches.Rectangle((xmin, ymin), w, h)
+rect = patches.Rectangle((x_c-w/2, y_c-h/2), w, h)
 ax.add_patch(rect)
-"""
-
 plt.legend()
 
 plt.show()
-
-
-
 
 # -----------------------------------
 # Plot theta(t) and v(t) versus time

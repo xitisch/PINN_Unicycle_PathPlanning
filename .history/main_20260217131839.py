@@ -1,0 +1,18 @@
+import torch
+import torch.nn as nn
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+
+softplus = nn.Softplus()
+T = 1
+N = 100
+
+list = torch.linspace(3, 10, steps=5)
+soft = softplus(list)
+relu_list = torch.relu(list)
+
+plt.figure()
+plt.plot(list.numpy(), relu_list.numpy())
+plt.plot(list.numpy(), soft.numpy())
+plt.grid(True)
+plt.show

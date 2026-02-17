@@ -199,7 +199,7 @@ def soft_relu(list,k=2):
     return (nn.functional.softplus(list*k)) / k
 
 def lse_max():
-    return torch.logsumexp(k*list)
+    return torch.logsumexp()
 
 def rect_sdf(x, y, xmin, xmax, ymin, ymax):
     cx = 0.5 * (xmin + xmax)
