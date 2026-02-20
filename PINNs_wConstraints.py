@@ -124,12 +124,14 @@ def obstacle_loss(model, t_list, obs, BC):
     x_max = obs[1]
     y_min = obs[2]
     y_max = obs[3]
-    d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
 
-    buffer = 0.0        # Buffer zone
+    d_sdf = rect_sdf(x, y, xmin, xmax, ymin, ymax)
+    
+
+    buffer = 0.02        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = soft_relu(r - d + buffer, k = 5) 
+    violation = soft_relu(buffer - d_sdf, k = 5) 
     return torch.mean(violation**2)
 
 def theta_loss(model, t_list, BC):
@@ -231,13 +233,13 @@ def rect_sdf(x, y, xmin, xmax, ymin, ymax):
     bx = 0.5 * (xmax - xmin)  # half width
     by = 0.5 * (ymax - ymin)  # half height
 
-    # q = |p-c| - b
+    # distance to the wall
     qx = torch.abs(x - cx) - bx
     qy = torch.abs(y - cy) - by
 
     # outside distance
     ox = nn.Softplus()(qx)
-    oy =nn.Softplus()(qy)
+    oy = nn.Softplus()(qy)
     # ox = torch.relu(qx)
     # oy = torch.relu(qy)
     outside = torch.sqrt(ox**2 + oy**2)
