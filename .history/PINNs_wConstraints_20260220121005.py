@@ -163,7 +163,21 @@ def theta_loss(model, t_list, BC):
 
 def length_loss(model, t_list, BC):
     """
-    
+    Input: model, list of time, boundary conditions description (x0,y0,xT,yT)
+    Ouptut: loss function value of the length. 
+    """
+    nn_input = model(t_list)
+    x, y, _, _, _ = hard_bc_transform(t_list, nn_input, BC)
+
+    x_t = derivative(x, t_list)
+    y_t = derivative(y, t_list)
+
+    sqrt = torch.sqrt(x_t**2 + y_t**2)
+
+    return torch.trapz(sqrt.squeeze(), t_list.squeeze())
+
+def omega_loss(model, t_list, BC):
+    """
     Input: model, list of time, boundary conditions description (x0,y0,xT,yT)
     Ouptut: loss function value of the length. 
     """
@@ -188,7 +202,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 num_epochs = 2000       # Num. of iterations of training
 print_every = 200       # Print every 200 iterations
 
-T = 1
+T = 10
 N = 100
 
 t_list = torch.linspace(0.0, T, N, device=device).view(-1, 1)
