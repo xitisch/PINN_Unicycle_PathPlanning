@@ -92,7 +92,7 @@ def physics_loss(model, t_list, BC):
 
     return L_phys
 
-def circ_obs_loss(model, t_list, obs, BC):
+def obs_loss(model, t_list, obs, BC):
     """
     Input: model, list of time, circular obstacle description (x,y,r)
     Ouptut: loss function value of current position. 

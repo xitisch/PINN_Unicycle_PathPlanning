@@ -92,7 +92,7 @@ def physics_loss(model, t_list, BC):
 
     return L_phys
 
-def circ_obs_loss(model, t_list, obs, BC):
+def obstacle_loss(model, t_list, obs, BC):
     """
     Input: model, list of time, circular obstacle description (x,y,r)
     Ouptut: loss function value of current position. 
@@ -112,7 +112,7 @@ def circ_obs_loss(model, t_list, obs, BC):
     violation = soft_relu(r - d + buffer, k = 5) 
     return torch.mean(violation**2)
 
-def rect_obs_loss(model, t_list, obs, BC):
+def obstacle_loss(model, t_list, obs, BC):
     """
     Input: model, list of time, circular obstacle description (x,y,r)
     Ouptut: loss function value of current position. 
@@ -124,14 +124,12 @@ def rect_obs_loss(model, t_list, obs, BC):
     x_max = obs[1]
     y_min = obs[2]
     y_max = obs[3]
+    d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
 
-    d_sdf = rect_sdf(x, y, xmin, xmax, ymin, ymax)
-    
-
-    buffer = 0.02        # Buffer zone
+    buffer = 0.0        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = soft_relu(buffer - d_sdf, k = 5) 
+    violation = soft_relu(r - d + buffer, k = 5) 
     return torch.mean(violation**2)
 
 def theta_loss(model, t_list, BC):
@@ -233,13 +231,13 @@ def rect_sdf(x, y, xmin, xmax, ymin, ymax):
     bx = 0.5 * (xmax - xmin)  # half width
     by = 0.5 * (ymax - ymin)  # half height
 
-    # distance to the wall
+    # q = |p-c| - b
     qx = torch.abs(x - cx) - bx
     qy = torch.abs(y - cy) - by
 
     # outside distance
     ox = nn.Softplus()(qx)
-    oy = nn.Softplus()(qy)
+    oy =nn.Softplus()(qy)
     # ox = torch.relu(qx)
     # oy = torch.relu(qy)
     outside = torch.sqrt(ox**2 + oy**2)
