@@ -201,7 +201,7 @@ xT, yT = 10.0, 0.0
 BC = [x0,y0,xT,yT]
 
 # Circle
-x_c, y_c, r = 5, 0.5, 3
+x_c, y_c, r = 5, 0.5, 5
 obs_circ = [x_c, y_c, r]
 
  

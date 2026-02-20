@@ -66,12 +66,11 @@ def hard_bc_transform(t, nn_data, BC):
     y = y_lin + f_theta * raw_yhat
 
     # Bounding of velocity
-    # v = 5*torch.tanh(v_raw)
+    v = 6*torch.tanh(v_raw)
     # Bounding of angular velocity
-    # omega = 5*torch.tanh(omega_raw)
+    omega = 2*torch.tanh(omega_raw)
 
-
-    return x, y, theta, v_raw, omega_raw
+    return x, y, theta, v, omega
 
 def physics_loss(model, t_list, BC):
     """
@@ -197,11 +196,11 @@ t_list.requires_grad_(True)
 
 # Define BC
 x0, y0 = 0.0, 0.0
-xT, yT = 10.0, 0.0
+xT, yT = 5.0, 1.0
 BC = [x0,y0,xT,yT]
 
 # Circle
-x_c, y_c, r = 5, 0.5, 3
+x_c, y_c, r = 3, 0.5, 1
 obs_circ = [x_c, y_c, r]
 
  

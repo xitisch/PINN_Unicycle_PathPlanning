@@ -9,7 +9,7 @@ torch.manual_seed(0)
 device = "cpu"
 
 class PINN(nn.Module):
-    def __init__(self, in_dim=1, out_dim=5, width=64, depth=4):
+    def __init__(self, in_dim=1, out_dim=5, width=64, depth=2):
         super().__init__()
         layers = [nn.Linear(in_dim, width), nn.Tanh()]
         for _ in range(depth - 1):
@@ -66,12 +66,12 @@ def hard_bc_transform(t, nn_data, BC):
     y = y_lin + f_theta * raw_yhat
 
     # Bounding of velocity
-    # v = 5*torch.tanh(v_raw)
+    v = 5*torch.tanh(v_raw)
     # Bounding of angular velocity
-    # omega = 5*torch.tanh(omega_raw)
+    omega = 5*torch.tanh(omega_raw)
 
 
-    return x, y, theta, v_raw, omega_raw
+    return x, y, theta, v, omega
 
 def physics_loss(model, t_list, BC):
     """
@@ -201,7 +201,7 @@ xT, yT = 10.0, 0.0
 BC = [x0,y0,xT,yT]
 
 # Circle
-x_c, y_c, r = 5, 0.5, 3
+x_c, y_c, r = 5, 0.5, 1
 obs_circ = [x_c, y_c, r]
 
  

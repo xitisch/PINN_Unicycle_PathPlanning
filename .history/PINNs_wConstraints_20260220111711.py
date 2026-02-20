@@ -50,7 +50,7 @@ def hard_bc_transform(t, nn_data, BC):
     raw_yhat = nn_data[:, 1:2]
     theta    = nn_data[:, 2:3]
     v_raw    = nn_data[:, 3:4]
-    omega_raw    = nn_data[:, 4:5]
+    omega    = nn_data[:, 4:5]
     
     # Boundary Conditions
     x0 = BC[0]
@@ -66,12 +66,10 @@ def hard_bc_transform(t, nn_data, BC):
     y = y_lin + f_theta * raw_yhat
 
     # Bounding of velocity
-    # v = 5*torch.tanh(v_raw)
-    # Bounding of angular velocity
-    # omega = 5*torch.tanh(omega_raw)
-
-
-    return x, y, theta, v_raw, omega_raw
+    # v = torch.tanh(v_raw)
+    # Bounding of curvature
+    # Kappa tbd
+    return x, y, theta, v_raw, omega
 
 def physics_loss(model, t_list, BC):
     """
@@ -184,6 +182,11 @@ def length_loss(model, t_list, BC):
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 # lr = eta, the factors that is multiplied with the gradient of the loss. 
 
+lambda_phys = 1
+lambda_obs_circ = 1
+lambda_optim = 0
+lambda_theta = 0.5
+lambda_length = 0
 
 num_epochs = 2000       # Num. of iterations of training
 print_every = 200       # Print every 200 iterations
@@ -197,11 +200,11 @@ t_list.requires_grad_(True)
 
 # Define BC
 x0, y0 = 0.0, 0.0
-xT, yT = 10.0, 0.0
+xT, yT = 5.0, 1.0
 BC = [x0,y0,xT,yT]
 
 # Circle
-x_c, y_c, r = 5, 0.5, 3
+x_c, y_c, r = 3, 0.5, 1
 obs_circ = [x_c, y_c, r]
 
  
@@ -245,11 +248,6 @@ def rect_sdf(x, y, xmin, xmax, ymin, ymax):
 
     return outside + inside  # signed distance
 
-lambda_phys = 1
-lambda_circ_obs = 1
-lambda_rect_obs = 1
-lambda_optim = 0
-lambda_length = 0
 
 for epoch in range(num_epochs):
     optimizer.zero_grad()
@@ -257,9 +255,10 @@ for epoch in range(num_epochs):
     # Compute losses
     L_phys = physics_loss(model, t_list, BC)
     L_circ_obs = circ_obs_loss(model, t_list, obs_circ, BC)
+    L_theta = theta_loss(model, t_list, BC)
     L_length = length_loss(model, t_list, BC)
 
-    loss = lambda_phys * L_phys + lambda_circ_obs * L_circ_obs + lambda_length * L_length
+    loss = lambda_phys * L_phys + lambda_obs_circ * L_circ_obs + lambda_theta * L_theta + lambda_length * L_length
     loss.backward()
     optimizer.step()
 
@@ -309,10 +308,10 @@ plt.figure(figsize=(10, 4))
 
 # Left subplot: angle (theta)
 plt.subplot(1, 2, 1)
-plt.plot(t_eval.cpu().numpy(), omega.cpu().numpy())
+plt.plot(t_eval.cpu().numpy(), theta.cpu().numpy())
 plt.xlabel("time t")
-plt.ylabel("omega (angle/s)")
-plt.title("Angularl velocity omega(t)")
+plt.ylabel("theta (angle)")
+plt.title("Heading angle θ(t)")
 plt.grid(True)
 
 # Right subplot: velocity (v)
