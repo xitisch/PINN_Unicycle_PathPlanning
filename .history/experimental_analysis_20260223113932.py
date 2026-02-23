@@ -67,7 +67,7 @@ im = plt.imshow(
 )
 
 plt.colorbar(im, label="Max curvature κ")
-plt.xlabel("Obstacle y_position")
+plt.xlabel("Obstacle x-position")
 plt.ylabel("Obstacle radius")
 plt.title("Curvature heatmap")
 
@@ -87,7 +87,7 @@ for i, r in enumerate(radii):
         linewidth=2
     )
 
-    plt.xlabel("Obstacle y-position")
+    plt.xlabel("Obstacle x-position")
     plt.ylabel("Max curvature κ")
     plt.title(f"Curvature vs displacement (r = {r})")
     plt.grid(True)

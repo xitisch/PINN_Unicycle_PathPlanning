@@ -67,7 +67,7 @@ im = plt.imshow(
 )
 
 plt.colorbar(im, label="Max curvature κ")
-plt.xlabel("Obstacle y_position")
+plt.xlabel("Obstacle x-position")
 plt.ylabel("Obstacle radius")
 plt.title("Curvature heatmap")
 
