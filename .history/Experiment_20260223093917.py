@@ -74,7 +74,7 @@ with torch.no_grad():
     print(f"x(0)={x0p.item():.6f}, y(0)={y0p.item():.6f}")
     print(f"x(T)={xTp.item():.6f}, y(T)={yTp.item():.6f}")
 
-# Plot of the trained path
+# Plot theta(t) and v(t) vs time
 plt.figure()
 plt.plot(x.cpu().numpy(), y.cpu().numpy())
 plt.scatter([x0, xT], [y0, yT])
