@@ -43,8 +43,9 @@ def train_model(
 
         if epoch % 500 == 0:
             print(f"Epoch {epoch}/{epochs}")
-            print(loss.item())
         loss.backward()
         optimizer.step()
+            if epoch % print_every == 0:
+        print(epoch, loss.item())
 
     return model

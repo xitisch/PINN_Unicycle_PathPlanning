@@ -9,7 +9,7 @@ from training_NN import train_model
 lambda_phys = 1
 lambda_obs = 1
 lambda_length = 0
-lambda_omega = 0
+lambda_omega = 0.1
 
 T = 1
 N = 100
@@ -37,8 +37,7 @@ model = train_model(
     lambda_obs=lambda_obs,
     lambda_length=lambda_length,
     lambda_omega=lambda_omega,
-    epochs=2000,
-    N=2000
+    epochs=2000
 )
 
 with torch.no_grad():

@@ -37,8 +37,7 @@ model = train_model(
     lambda_obs=lambda_obs,
     lambda_length=lambda_length,
     lambda_omega=lambda_omega,
-    epochs=2000,
-    N=2000
+    epochs=2000
 )
 
 with torch.no_grad():
