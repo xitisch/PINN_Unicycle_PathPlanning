@@ -26,19 +26,16 @@ def train_model(
 
         L_phys = physics_loss(model, t_list, T, BC)
 
-        L_obs = 0        
+        L_obs = 0
         if obs_circ is not None:
             L_obs = circ_obs_loss(model, t_list, obs_circ, T, BC)
 
         L_length = length_loss(model, t_list, T, BC)
 
-        L_omega = omega_loss(model, t_list, T, BC)
-
         loss = (
             lambda_phys * L_phys
             + lambda_obs * L_obs
             + lambda_length * L_length
-            + lambda_omega * L_omega
         )
 
         if epoch % 500 == 0:

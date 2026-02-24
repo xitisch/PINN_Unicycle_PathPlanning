@@ -18,16 +18,15 @@ x0, y0 = 0.0, 0.0
 xT, yT = 1.0, 0.0
 BC = [x0,y0,xT,yT]
 
-x_c, y_c, r = 0.5, 0.2, 0.3
-# obs_circ = [x_c, y_c, r]
-obs = [x_c, y_c, r]
+x_c, y_c, r = 0.5, 0.1, 0.1
+obs_circ = [x_c, y_c, r]
 
 t_list = torch.linspace(0.0, T, N, device=device).view(-1, 1)
 t_list.requires_grad_(True)
 
 results = []
 
-
+obs = [0.5, 0.2, 0.3]
 
 model = train_model(
     T=T,

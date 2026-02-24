@@ -11,23 +11,15 @@ lambda_obs = 1
 lambda_length = 0
 lambda_omega = 1
 
-T = 1
-N = 100
-
-x0, y0 = 0.0, 0.0
-xT, yT = 1.0, 0.0
-BC = [x0,y0,xT,yT]
-
-x_c, y_c, r = 0.5, 0.2, 0.3
-# obs_circ = [x_c, y_c, r]
-obs = [x_c, y_c, r]
-
 t_list = torch.linspace(0.0, T, N, device=device).view(-1, 1)
 t_list.requires_grad_(True)
 
 results = []
 
+T = 1
+N = 100
 
+obs = [0.5, 0.2, 0.3]
 
 model = train_model(
     T=T,
@@ -35,10 +27,9 @@ model = train_model(
     obs_circ=obs,
     epochs=2000
 )
-
 with torch.no_grad():
-    nn_input = model(t_list)
-    x, y, theta, v, omega = hard_bc_transform(t_list, nn_input, T, BC)
+    nn_input = model(t_eval)
+    x, y, theta, v, omega = hard_bc_transform(t_eval, nn_input, T, BC)
 
     t0 = torch.tensor([[0.0]], dtype=torch.float32, device=device)
     tT = torch.tensor([[T]], dtype=torch.float32, device=device)

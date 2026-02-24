@@ -25,10 +25,9 @@ y_positions = [0.3, 0.4, 0.5, 0.6]
 T = 1
 N = 100
 
-lambda_phys = 1
-lambda_obs = 1
-lambda_length = 0
-lambda_omega = 1
+    lambda_phys=1,
+    lambda_obs=1,
+    lambda_length
 
 t_list = torch.linspace(0.0, T, N, device=device).view(-1, 1)
 t_list.requires_grad_(True)

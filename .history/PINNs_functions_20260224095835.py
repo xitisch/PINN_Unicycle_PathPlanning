@@ -133,7 +133,33 @@ def rect_obs_loss(model, t_list, obs, T, BC):
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
     violation = soft_relu(buffer - d_sdf, k = 5) 
-    return torch.trapz((violation**2).squeeze(), t_list.squeeze())
+    return torch.trapz((violation**2).squeeze())
+
+def theta_loss(model, t_list, T, BC):
+    """
+    
+    Input: model, list of time, boundary conditions description (x0,y0,xT,yT)
+    Ouptut: loss function value of the curvature. 
+    """
+    nn_input = model(t_list)
+    x, y, theta, v, _ = hard_bc_transform(t_list, nn_input, T, BC)
+
+    x_t = derivative(x, t_list)
+    y_t = derivative(y, t_list)
+    x_tt = derivative(x_t, t_list)
+    y_tt = derivative(y_t, t_list)
+    theta_t = derivative(theta, t_list)
+
+    safety = 1e-6 # To ensure that we the denominator isn't 0.
+
+    num = x_t * y_tt - y_t * x_tt
+    den = (x_t**2 + y_t**2 + safety)**(3/2)
+
+    K = num / den
+
+    r = theta_t - (K * v)
+
+    return (r**2).mean()
 
 def length_loss(model, t_list, T, BC):
     """
@@ -158,7 +184,7 @@ def omega_loss(model, t_list, T, BC):
     nn_input = model(t_list)
     _, _, _, _, omega = hard_bc_transform(t_list, nn_input, T, BC)
 
-    return torch.trapz(torch.square(omega).squeeze(), t_list.squeeze())
+    return torch.trapz(torch.square(omega).squeeze())
 
 def soft_relu(list,k=2):
     return (nn.functional.softplus(list*k)) / k

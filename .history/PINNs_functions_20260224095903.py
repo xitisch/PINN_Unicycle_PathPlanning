@@ -158,7 +158,7 @@ def omega_loss(model, t_list, T, BC):
     nn_input = model(t_list)
     _, _, _, _, omega = hard_bc_transform(t_list, nn_input, T, BC)
 
-    return torch.trapz(torch.square(omega).squeeze(), t_list.squeeze())
+    return torch.trapz(torch.square(omega).squeeze())
 
 def soft_relu(list,k=2):
     return (nn.functional.softplus(list*k)) / k
