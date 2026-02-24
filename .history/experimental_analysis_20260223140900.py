@@ -31,10 +31,10 @@ results = []
 
 for r in radii:
     print(f"Now: r = {r} out of {radii[-1]}")
-    for y_c in y_positions:
+    for x_c in y_positions:
 
-        print(f"Now: y_c = {y_c} out of {y_positions[-1]}")
-        obs = [0.5, y_c, r]
+        print(f"Now: x_c = {x_c} out of {y_positions[-1]}")
+        obs = [x_c, 0.1, r]
 
         model = train_model(
             T=T,
@@ -44,15 +44,15 @@ for r in radii:
         )
 
         kappa_max = compute_curvature(model, t_list=t_list, T=T, BC=[0, 0, 1, 0])
-        results.append([r, y_c, kappa_max])
+        results.append([r, x_c, kappa_max])
 
 data = np.array(results)
 
 heatmap = np.zeros((len(radii), len(y_positions)))
 
-for r, y_c, kappa in results:
+for r, x_c, kappa in results:
     i = radii.index(r)
-    j = y_positions.index(y_c)
+    j = y_positions.index(x_c)
     heatmap[i, j] = kappa
 
 plt.figure(figsize=(6, 5))
