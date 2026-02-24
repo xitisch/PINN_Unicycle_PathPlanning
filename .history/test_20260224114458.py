@@ -8,7 +8,7 @@ from training_NN import train_model
 
 lambda_phys = 1
 lambda_obs = 0.5
-lambda_length = 0.005
+lambda_length = 0
 lambda_omega = 0.001
 
 T = 1

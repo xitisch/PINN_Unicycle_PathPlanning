@@ -17,6 +17,7 @@ def train_model(
     model = PINN()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
+
     t_list = torch.linspace(0.0, T, N, device=device).view(-1, 1)
     t_list.requires_grad_(True)
 
