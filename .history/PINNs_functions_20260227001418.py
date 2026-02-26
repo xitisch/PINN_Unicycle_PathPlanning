@@ -110,7 +110,7 @@ def circ_obs_loss(model, t_list, obs, T, BC):
     buffer = 0.0        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = soft_relu(r - d + buffer, k=10) 
+    violation = soft_relu(r - d + buffer, k = 5) 
     return torch.trapz((violation**2).squeeze(), t_list.squeeze())
 
 def rect_obs_loss(model, t_list, obs, T, BC):
@@ -126,16 +126,16 @@ def rect_obs_loss(model, t_list, obs, T, BC):
     ymin = obs[2]
     ymax = obs[3]
 
-    T_L = 0.2
-    x_L = x + v * T_L * torch.cos(theta)
-    y_L = y + v * T_L * torch.sin(theta)
+    L = 0.1
+    T_L = L/v
 
-    d_sdf = rect_sdf(x_L, y_L, xmin, xmax, ymin, ymax)
+    d_sdf = rect_sdf(x, y, xmin, xmax, ymin, ymax)
+    
 
-    buffer = 0        # Buffer zone
+    buffer = 0.02        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = soft_relu(buffer - d_sdf, k=10) 
+    violation = soft_relu(buffer - d_sdf, k = 10) 
     return torch.trapz((violation**2).squeeze(), t_list.squeeze())
 
 def length_loss(model, t_list, T, BC):
@@ -173,14 +173,14 @@ def v_loss(model, t_list, T, BC):
 
     return torch.trapz((v**2).squeeze(), t_list.squeeze())
 
-def soft_relu(list,k=10):
+def soft_relu(list,k=2):
     return (nn.functional.softplus(list*k)) / k
 
-def lse_max(x, y, k=10):
+def lse_max(x, y, k=2):
     sum_stack = torch.stack((k*x, k*y), dim=0)
     return torch.logsumexp(sum_stack, dim=0) / k
 
-def lse_min(x, y, k=10):
+def lse_min(x, y, k=2):
     return -(lse_max(-x, -y, k))
 
 def rect_sdf(x, y, xmin, xmax, ymin, ymax):
@@ -194,10 +194,10 @@ def rect_sdf(x, y, xmin, xmax, ymin, ymax):
     qy = torch.abs(y - cy) - by
 
     # outside distance
-    # ox = nn.Softplus()(qx)
-    # oy = nn.Softplus()(qy)
-    ox = torch.relu(qx)
-    oy = torch.relu(qy)
+    ox = nn.Softplus()(qx)
+    oy = nn.Softplus()(qy)
+    # ox = torch.relu(qx)
+    # oy = torch.relu(qy)
     outside = torch.sqrt(ox**2 + oy**2)
 
     # inside term (negative or 0)

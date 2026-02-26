@@ -194,10 +194,10 @@ def rect_sdf(x, y, xmin, xmax, ymin, ymax):
     qy = torch.abs(y - cy) - by
 
     # outside distance
-    # ox = nn.Softplus()(qx)
-    # oy = nn.Softplus()(qy)
-    ox = torch.relu(qx)
-    oy = torch.relu(qy)
+    ox = nn.Softplus()(qx)
+    oy = nn.Softplus()(qy)
+    # ox = torch.relu(qx)
+    # oy = torch.relu(qy)
     outside = torch.sqrt(ox**2 + oy**2)
 
     # inside term (negative or 0)

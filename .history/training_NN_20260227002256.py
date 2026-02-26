@@ -46,7 +46,6 @@ def train_model(
             print(f"Epoch {epoch}/{epochs}")
             print(loss.item())
             print("L_obs:", L_obs.item())
-            print("L_phys:", L_phys.item())
         loss.backward()
         optimizer.step()
 
