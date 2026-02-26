@@ -8,7 +8,6 @@ def train_model(
     lambda_obs=1,
     lambda_length=0,
     lambda_omega=0.0015,
-    lambda_EL=0.001,
     epochs=2000,
     lr=0.001,
     N=100
@@ -33,21 +32,14 @@ def train_model(
         L_length = length_loss(model, t_list, T, BC)
 
         L_omega = omega_loss(model, t_list, T, BC)
-        
-        L_EL = EL_loss(model, 
-                       t_list, 
-                       T, BC, 
-                       obs=obs_circ, 
-                       lam_phys=lambda_phys, 
-                       lam_obs=lambda_obs, 
-                       lam_omega=lambda_omega)
+
+        L_v = v_loss(model, t_list, T, BC)
 
         loss = (
             lambda_phys * L_phys
             + lambda_obs * L_obs
             + lambda_length * L_length
             + lambda_omega * L_omega
-            + lambda_EL * L_EL
         )
 
         if epoch % 500 == 0:

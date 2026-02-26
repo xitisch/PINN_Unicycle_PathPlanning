@@ -65,7 +65,7 @@ def hard_bc_transform(t, nn_data, T, BC):
     y = y_lin + f_theta * raw_yhat
 
     # Bounding of velocity
-    v = 2*torch.sigmoid(v_raw)
+    v = 5*torch.sigmoid(v_raw)
     # Bounding of angular velocity
     omega = 2*torch.sigmoid(omega_raw)
 
@@ -170,7 +170,7 @@ def v_loss(model, t_list, T, BC):
 
     return torch.trapz((v**2).squeeze(), t_list.squeeze())
 
-def EL_loss(model, t, T, BC, obs, lam_phys=1.0, lam_obs=1.0, lam_omega=1.0):
+def euler_lagrange_loss_circ(model, t, T, BC, obs, lam_phys=1.0, lam_obs=1.0, lam_omega=1.0):
     nn_out = model(t)
     x, y, theta, v, omega = hard_bc_transform(t, nn_out, T, BC)
 

@@ -65,12 +65,12 @@ def hard_bc_transform(t, nn_data, T, BC):
     y = y_lin + f_theta * raw_yhat
 
     # Bounding of velocity
-    v = 2*torch.sigmoid(v_raw)
+    v = 5*torch.sigmoid(v_raw)
     # Bounding of angular velocity
-    omega = 2*torch.sigmoid(omega_raw)
+    omega = 5*torch.sigmoid(omega_raw)
 
 
-    return x, y, theta, v, omega
+    return x, y, theta, v_raw, omega_raw
 
 def physics_loss(model, t_list, T, BC):
     """
@@ -160,17 +160,17 @@ def omega_loss(model, t_list, T, BC):
 
     return torch.trapz((omega**2).squeeze(), t_list.squeeze())
 
-def v_loss(model, t_list, T, BC):
+def omega_loss(model, t_list, T, BC):
     """
     Input: model, list of time, boundary conditions description (x0,y0,xT,yT)
     Ouptut: loss function value of the sum of omega. 
     """
     nn_input = model(t_list)
-    _, _, _, v, _ = hard_bc_transform(t_list, nn_input, T, BC)
+    _, _, _, _, omega = hard_bc_transform(t_list, nn_input, T, BC)
 
-    return torch.trapz((v**2).squeeze(), t_list.squeeze())
+    return torch.trapz((omega**2).squeeze(), t_list.squeeze())
 
-def EL_loss(model, t, T, BC, obs, lam_phys=1.0, lam_obs=1.0, lam_omega=1.0):
+def euler_lagrange_loss_circ(model, t, T, BC, obs, lam_phys=1.0, lam_obs=1.0, lam_omega=1.0):
     nn_out = model(t)
     x, y, theta, v, omega = hard_bc_transform(t, nn_out, T, BC)
 

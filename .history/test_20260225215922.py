@@ -7,10 +7,9 @@ from PINNs_functions import *
 from training_NN import train_model
 
 lambda_phys = 1
-lambda_obs = 1
-lambda_length = 0
-lambda_omega = 0.0027
-lambda_EL = 0.1
+lambda_obs = 0.5
+lambda_length = 0.001
+lambda_omega = 0.001
 
 T = 1
 N = 100
@@ -38,7 +37,6 @@ model = train_model(
     lambda_obs=lambda_obs,
     lambda_length=lambda_length,
     lambda_omega=lambda_omega,
-    lambda_EL=lambda_EL,
     epochs=2000,
     N=200
 )
@@ -74,26 +72,4 @@ ax.add_patch(rect)
 """
 
 plt.legend()
-plt.show()
-
-# Second plot: theta(t) and v(t) vs time. 
-plt.figure(figsize=(10, 4))
-
-# Left subplot: angle (theta)
-plt.subplot(1, 2, 1)
-plt.plot(t_list.detach().numpy(), omega.cpu().numpy())
-plt.xlabel("t (s)")
-plt.ylabel("ω (rad/s)")
-plt.title("Angular velocity")
-plt.grid(True)
-
-# Right subplot: velocity (v)
-plt.subplot(1, 2, 2)
-plt.plot(t_list.detach().numpy(), v.cpu().numpy())
-plt.xlabel("t (s)")
-plt.ylabel("v (m/s)")
-plt.title("Velocity")
-plt.grid(True)
-
-plt.tight_layout()
 plt.show()

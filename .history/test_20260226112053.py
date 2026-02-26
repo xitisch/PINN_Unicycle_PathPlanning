@@ -7,10 +7,9 @@ from PINNs_functions import *
 from training_NN import train_model
 
 lambda_phys = 1
-lambda_obs = 1
+lambda_obs = 0.5
 lambda_length = 0
-lambda_omega = 0.0027
-lambda_EL = 0.1
+lambda_omega = 0.002
 
 T = 1
 N = 100
@@ -38,7 +37,6 @@ model = train_model(
     lambda_obs=lambda_obs,
     lambda_length=lambda_length,
     lambda_omega=lambda_omega,
-    lambda_EL=lambda_EL,
     epochs=2000,
     N=200
 )

@@ -19,7 +19,7 @@ x0, y0 = 0.0, 0.0
 xT, yT = 1.0, 0.0
 BC = [x0,y0,xT,yT]
 
-x_c, y_c, r = 0.5, 0.2, 0.3
+x_c, y_c, r = 0.5, 0.1, 0.3
 # obs_circ = [x_c, y_c, r]
 obs = [x_c, y_c, r]
 

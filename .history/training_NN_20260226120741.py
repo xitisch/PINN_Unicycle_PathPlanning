@@ -33,21 +33,14 @@ def train_model(
         L_length = length_loss(model, t_list, T, BC)
 
         L_omega = omega_loss(model, t_list, T, BC)
-        
-        L_EL = EL_loss(model, 
-                       t_list, 
-                       T, BC, 
-                       obs=obs_circ, 
-                       lam_phys=lambda_phys, 
-                       lam_obs=lambda_obs, 
-                       lam_omega=lambda_omega)
+
+        L_EL = EL_loss(model, t_list, T, BC, obs=obs_circ, lam_phys=lambda_phys, lam_obs=lambda_obs, lam_omega=lambda_omega)
 
         loss = (
             lambda_phys * L_phys
             + lambda_obs * L_obs
             + lambda_length * L_length
             + lambda_omega * L_omega
-            + lambda_EL * L_EL
         )
 
         if epoch % 500 == 0:
