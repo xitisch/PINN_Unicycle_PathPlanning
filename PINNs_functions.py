@@ -160,6 +160,45 @@ def omega_loss(model, t_list, T, BC):
 
     return torch.trapz((omega**2).squeeze(), t_list.squeeze())
 
+def euler_lagrange_loss_circ(model, t, T, BC, obs, lam_phys=1.0, lam_obs=1.0, lam_omega=1.0):
+    nn_out = model(t)
+    x, y, theta, v, omega = hard_bc_transform(t, nn_out, T, BC)
+
+    x_t = derivative(x, t)
+    y_t = derivative(y, t)
+    th_t = derivative(theta, t)
+
+    A = x_t - v*torch.cos(theta)
+    B = y_t - v*torch.sin(theta)
+    C = th_t - omega
+
+    x_c, y_c, r = obs
+    dx = x - x_c
+    dy = y - y_c
+    d = torch.sqrt(dx**2 + dy**2 + 1e-12)
+
+    A_t = derivative(A, t)      
+    B_t = derivative(B, t)
+    C_t = derivative(C, t)     
+
+    dLobs_dx = 2.0*(d - r) * (dx / d)
+    dLobs_dy = 2.0*(d - r) * (dy / d)
+
+    # Euler–Lagrange residuals:
+    E_x = lam_obs*dLobs_dx - 2.0*lam_phys*A_t
+
+    E_y = lam_obs*dLobs_dy - 2.0*lam_phys*B_t
+
+    dL_dtheta = 2.0*lam_phys*v*(A*torch.sin(theta) - B*torch.cos(theta))
+    E_th = dL_dtheta - 2.0*lam_phys*C_t
+
+    E_v = A*torch.cos(theta) + B*torch.sin(theta)
+
+    E_om = -2.0*lam_phys*C + 2.0*lam_omega*omega
+
+    integrand = (E_x**2 + E_y**2 + E_th**2 + E_v**2 + E_om**2)
+    return torch.trapz(integrand.squeeze(), t.squeeze())
+
 def soft_relu(list,k=2):
     return (nn.functional.softplus(list*k)) / k
 
