@@ -26,10 +26,9 @@ def train_model(
         L_phys = physics_loss(model, t_list, T, BC)
 
         L_obs = 0        
-        if len(obs) == 3:
-            L_obs = circ_obs_loss(model, t_list, obs, T, BC)
-        if len(obs) == 4:
-            L_obs = rect_obs_loss(model, t_list, obs, T, BC)
+        if len(obs) is 3:
+            L_obs = circ_obs_loss(model, t_list, obs_circ, T, BC)
+        if len(obs) == 2:
 
         L_length = length_loss(model, t_list, T, BC)
 

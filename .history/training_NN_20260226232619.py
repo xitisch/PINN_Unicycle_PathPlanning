@@ -27,9 +27,9 @@ def train_model(
 
         L_obs = 0        
         if len(obs) == 3:
-            L_obs = circ_obs_loss(model, t_list, obs, T, BC)
+            L_obs = circ_obs_loss(model, t_list, obs_circ, T, BC)
         if len(obs) == 4:
-            L_obs = rect_obs_loss(model, t_list, obs, T, BC)
+            
 
         L_length = length_loss(model, t_list, T, BC)
 

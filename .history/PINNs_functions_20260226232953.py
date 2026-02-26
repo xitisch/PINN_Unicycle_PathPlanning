@@ -132,7 +132,7 @@ def rect_obs_loss(model, t_list, obs, T, BC):
     buffer = 0.02        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = soft_relu(buffer - d_sdf, k = 10) 
+    violation = soft_relu(buffer - d_sdf, k = 5) 
     return torch.trapz((violation**2).squeeze(), t_list.squeeze())
 
 def length_loss(model, t_list, T, BC):
