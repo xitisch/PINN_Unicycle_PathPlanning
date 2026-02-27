@@ -129,11 +129,11 @@ def rect_obs_loss(model, t_list, obs, T, BC):
 
     # Predictive Look-Ahead
     # Source: https://www.researchgate.net/publication/3344494_The_Dynamic_Window_Approach_to_Collision_Avoidance
-    T_L = 0.05
+    T_L = 0.1
     x_L = x + v * T_L * torch.cos(theta)
     y_L = y + v * T_L * torch.sin(theta)
 
-    d_sdf = rect_sdf(x_L, y_L, xmin, xmax, ymin, ymax)
+    d_sdf = rect_sdf(x, y, xmin, xmax, ymin, ymax)
 
     buffer = 0        # Buffer zone
 
