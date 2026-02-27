@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -111,7 +110,7 @@ def circ_obs_loss(model, t_list, obs, T, BC):
     buffer = 0.0        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = F.softplus((r-d+buffer), beta=20)
+    violation = soft_relu(r - d + buffer, k=10) 
     return torch.trapz((violation**2).squeeze(), t_list.squeeze())
 
 def rect_obs_loss(model, t_list, obs, T, BC):
@@ -136,7 +135,7 @@ def rect_obs_loss(model, t_list, obs, T, BC):
     buffer = 0        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = F.softplus((buffer-d_sdf), beta=20) 
+    violation = soft_relu(buffer - d_sdf, k=10) 
     return torch.trapz((violation**2).squeeze(), t_list.squeeze())
 
 def length_loss(model, t_list, T, BC):
@@ -174,11 +173,14 @@ def v_loss(model, t_list, T, BC):
 
     return torch.trapz((v**2).squeeze(), t_list.squeeze())
 
-def lse_max(x, y, k=20):
+def soft_relu(list,k=10):
+    return (nn.functional.softplus(list*k)) / k
+
+def lse_max(x, y, k=10):
     sum_stack = torch.stack((k*x, k*y), dim=0)
     return torch.logsumexp(sum_stack, dim=0) / k
 
-def lse_min(x, y, k=20):
+def lse_min(x, y, k=10):
     return -(lse_max(-x, -y, k))
 
 def rect_sdf(x, y, xmin, xmax, ymin, ymax):
@@ -192,8 +194,8 @@ def rect_sdf(x, y, xmin, xmax, ymin, ymax):
     qy = torch.abs(y - cy) - by
 
     # outside distance
-    ox = F.softplus(qx, beta=20)
-    oy = F.softplus(qy, beta=20)
+    ox = nn.Softplus()(qx)
+    oy = nn.Softplus()(qy)
     # ox = torch.relu(qx)
     # oy = torch.relu(qy)
     outside = torch.sqrt(ox**2 + oy**2)

@@ -174,6 +174,9 @@ def v_loss(model, t_list, T, BC):
 
     return torch.trapz((v**2).squeeze(), t_list.squeeze())
 
+def soft_relu(list,k=20):
+    return (nn.functional.softplus(list*k)) / k
+
 def lse_max(x, y, k=20):
     sum_stack = torch.stack((k*x, k*y), dim=0)
     return torch.logsumexp(sum_stack, dim=0) / k
