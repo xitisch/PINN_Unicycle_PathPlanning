@@ -3,8 +3,8 @@
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
-from pinnlib.pinnsfunctions import *
-from pinnlib.trainingNN import train_model
+from PINNs_functions import *
+from training_NN import train_model
 
 lambda_phys = 1
 lambda_obs = 10

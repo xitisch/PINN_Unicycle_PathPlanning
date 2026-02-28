@@ -127,7 +127,7 @@ def rect_obs_loss(model, t_list, obs, T, BC):
     ymin = obs[2]
     ymax = obs[3]
 
-    # Predictive Look-Ahead
+    # Dynamic Window Approach (Predictive Look-Ahead)
     # Source: https://www.researchgate.net/publication/3344494_The_Dynamic_Window_Approach_to_Collision_Avoidance
     T_L = 0.05
     x_L = x + v * T_L * torch.cos(theta)
