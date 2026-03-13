@@ -10,8 +10,8 @@ import torch
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-from pinnlib.pinnsfunctions import *
-from pinnlib.trainingNN import train_model
+from pinnlib.pinn_functions import *
+from pinnlib.training_pinn import train_model
 
 
 def compute_curvature(model, t_list, T, BC):
@@ -52,11 +52,13 @@ lambda_omega = 0.0001
 
 BC = [0, 0, 1, 0]  # Start (0,0) -> Goal (1,0)
 
-# Fixed radius
-r_fixed = 0.20
+# Rectangle dimensions
+width = 0.4
+height = 0.2
 
 Delta = 0.10
-y_c = r_fixed - Delta
+y_c = height/2 - Delta
+
 if y_c < 0:
     raise ValueError(f"Delta={Delta} too large for r_fixed={r_fixed}: y_c would be negative.")
 
@@ -72,12 +74,18 @@ t_list.requires_grad_(True)
 # Run experiments
 scenarios = []   # store trajectories for plotting
 
-print(f"Fixed radius r={r_fixed:.2f}")
+print(f"Fixed height={height:.2f} and width={width:.2f}")
 print(f"Using y_c={y_c:.2f} (Delta={Delta:.2f}")
 
 for x_c in x_positions:
     print(f"Training for x_c = {x_c:.2f}")
-    obs = [x_c, y_c, r_fixed]
+
+    xmin = x_c - width/2
+    xmax = x_c + width/2
+    ymin = y_c - height/2
+    ymax = y_c + height/2
+
+    obs = [xmin, xmax, ymin, ymax]
 
     model = train_model(
         T=T,
@@ -96,7 +104,13 @@ for x_c in x_positions:
 
     scenarios.append({
     "model": model,
-    "x_c": x_c, "y_c": y_c, "r": r_fixed, "Delta": Delta,
+    "xmin": xmin,
+    "xmax": xmax,
+    "ymin": ymin,
+    "ymax": ymax,
+    "x_c": x_c,
+    "y_c": y_c, 
+    "Delta": Delta,
     "kappa_max": kappa_max,
     "x": x_np, "y": y_np,
     "t": t_np, "kappa": k_np
@@ -104,7 +118,7 @@ for x_c in x_positions:
 
 
 # Plot 1: curvature vs x_c
-output_folder = "figures_1D_longitudinal"
+output_folder = os.path.join("figures", "longitudinal", "rectangle")
 os.makedirs(output_folder, exist_ok=True)
 
 xs = np.array([s["x_c"] for s in scenarios], dtype=float)
@@ -112,11 +126,11 @@ ks = np.array([s["kappa_max"] for s in scenarios], dtype=float)
 
 fig1, ax1 = plt.subplots(figsize=(7, 4.5))
 ax1.plot(xs, ks, marker="o")
-ax1.set_xlabel(r"Obstacle longitudinal position $x_c$")
+ax1.set_xlabel(r"Obstacle center position $x_c$")
 ax1.set_ylabel(r"Max curvature $\kappa_{\max}$")
 ax1.set_title(
     rf"$\kappa_{{\max}}$ vs $x_c$  "
-    rf"($\mathrm{{fixed}}\ r={r_fixed:.2f},\ y_c={y_c:.2f}$)"
+    rf"($\mathrm{{fixed}}\ w={width:.2f},\ h={height:.2f}$)"
 )
 ax1.grid(True, alpha=0.3)
 
@@ -154,8 +168,25 @@ for j, x_c in enumerate(x_positions):
     ax.plot([BC[0], BC[2]], [BC[1], BC[3]], linestyle="--", linewidth=1, alpha=0.5)
 
     # obstacle: filled + outline
-    fill = patches.Circle((s["x_c"], s["y_c"]), s["r"], fill=True, alpha=0.15, linewidth=0)
-    edge = patches.Circle((s["x_c"], s["y_c"]), s["r"], fill=False, linewidth=2.5)
+    width  = s["xmax"] - s["xmin"]
+    height = s["ymax"] - s["ymin"]
+
+    fill = patches.Rectangle(
+        (s["xmin"], s["ymin"]),
+        width,
+        height,
+        fill=True,
+        alpha=0.15,
+        linewidth=0
+    )
+
+    edge = patches.Rectangle(
+        (s["xmin"], s["ymin"]),
+        width,
+        height,
+        fill=False,
+        linewidth=2.5
+    )
     ax.add_patch(fill)
     ax.add_patch(edge)
 
@@ -196,10 +227,10 @@ lookup = {s["x_c"]: s for s in scenarios}
 
 # Axis limits for trajectory row (include obstacle extents)
 all_x = np.concatenate([s["x"] for s in scenarios] + [
-    np.array([s["x_c"] - s["r"], s["x_c"] + s["r"]]) for s in scenarios
+    np.array([s["xmin"], s["xmax"]]) for s in scenarios
 ])
 all_y = np.concatenate([s["y"] for s in scenarios] + [
-    np.array([s["y_c"] - s["r"], s["y_c"] + s["r"]]) for s in scenarios
+    np.array([s["ymin"], s["ymax"]]) for s in scenarios
 ])
 
 pad = 0.08

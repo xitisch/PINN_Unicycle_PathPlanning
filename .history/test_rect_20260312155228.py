@@ -9,7 +9,7 @@ from pinnlib.training_pinn import train_model
 lambda_phys = 1
 lambda_obs = 10
 lambda_length = 0
-lambda_omega = 0.0001
+lambda_omega = 0.002
 
 T = 1
 N = 100
@@ -18,8 +18,15 @@ x0, y0 = 0.0, 0.0
 xT, yT = 1.0, 0.0
 BC = [x0,y0,xT,yT]
 
-x_c, y_c, r = 0.5, 0.1, 0.3
-obs_circ = [[x_c, y_c, r]]
+# Rectangle 
+x_c = 0.5
+y_c = 0.1
+w, h = 0.3, 0.3
+xmin = x_c - w/2
+xmax = x_c + w/2
+ymin = y_c - h/2
+ymax = y_c + h/2
+obs_rect = [xmin, xmax, ymin, ymax]
 
 t_list = torch.linspace(0.0, T, N, device=device).view(-1, 1)
 t_list.requires_grad_(True)
@@ -27,10 +34,11 @@ t_list.requires_grad_(True)
 results = []
 
 
+
 model = train_model(
     T=T,
     BC=[0, 0, 1, 0],
-    obs=obs_circ,
+    obs=obs_rect,
     lambda_phys=lambda_phys,
     lambda_obs=lambda_obs,
     lambda_length=lambda_length,
@@ -61,13 +69,8 @@ plt.xlabel("x"); plt.ylabel("y"); plt.axis("equal")
 ax = plt.gca()
 
 # Defining the obstacles visualizations in the plot.
-obstacle_circle = plt.Circle((x_c, y_c), r, color='r', fill=True, alpha=0.3, label='Obstacle')
-ax.add_patch(obstacle_circle)
-
-"""
 rect = patches.Rectangle((xmin, ymin), w, h)
 ax.add_patch(rect)
-"""
 
 plt.legend()
 plt.show()

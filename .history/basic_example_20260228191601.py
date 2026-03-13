@@ -5,7 +5,7 @@ import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from pinnlib.pinn_functions import *
+from pinnlib.pinnsfunctions import *
 
 # Training setup:
 # Repeateldly adjusting the NN's parameters so that 

@@ -18,8 +18,16 @@ x0, y0 = 0.0, 0.0
 xT, yT = 1.0, 0.0
 BC = [x0,y0,xT,yT]
 
-x_c, y_c, r = 0.5, 0.1, 0.3
-obs_circ = [[x_c, y_c, r]]
+# Obstacle 1
+x_c1, y_c1, r1 = 0.4, 0.15, 0.2
+
+# Obstacle 2
+x_c2, y_c2, r2 = 0.7, -0.15, 0.2
+
+obs_circ = [
+    [x_c1, y_c1, r1],
+    [x_c2, y_c2, r2]
+]
 
 t_list = torch.linspace(0.0, T, N, device=device).view(-1, 1)
 t_list.requires_grad_(True)

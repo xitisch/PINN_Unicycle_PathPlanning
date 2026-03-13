@@ -6,10 +6,10 @@ import numpy as np
 from pinnlib.pinn_functions import *
 from pinnlib.training_pinn import train_model
 
-lambda_phys = 1
-lambda_obs = 10
+lambda_phys = 10
+lambda_obs = 1e5
 lambda_length = 0
-lambda_omega = 0.0001
+lambda_omega = 1e-7
 
 T = 1
 N = 100
@@ -18,8 +18,16 @@ x0, y0 = 0.0, 0.0
 xT, yT = 1.0, 0.0
 BC = [x0,y0,xT,yT]
 
-x_c, y_c, r = 0.5, 0.1, 0.3
-obs_circ = [[x_c, y_c, r]]
+# Obstacle 1
+x_c1, y_c1, r1 = 0.4, 0.1, 0.15
+
+# Obstacle 2
+x_c2, y_c2, r2 = 0.7, -0.1, 0.15
+
+obs_circ = [
+    [x_c1, y_c1, r1],
+    [x_c2, y_c2, r2]
+]
 
 t_list = torch.linspace(0.0, T, N, device=device).view(-1, 1)
 t_list.requires_grad_(True)
@@ -61,8 +69,11 @@ plt.xlabel("x"); plt.ylabel("y"); plt.axis("equal")
 ax = plt.gca()
 
 # Defining the obstacles visualizations in the plot.
-obstacle_circle = plt.Circle((x_c, y_c), r, color='r', fill=True, alpha=0.3, label='Obstacle')
-ax.add_patch(obstacle_circle)
+circle1 = plt.Circle((x_c1, y_c1), r1, color='r', alpha=0.3, label='Obstacle 1')
+circle2 = plt.Circle((x_c2, y_c2), r2, color='r', alpha=0.3, label='Obstacle 2')
+
+ax.add_patch(circle1)
+ax.add_patch(circle2)
 
 """
 rect = patches.Rectangle((xmin, ymin), w, h)
