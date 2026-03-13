@@ -66,12 +66,12 @@ def hard_bc_transform(t, nn_data, T, BC):
     y = y_lin + f_theta * raw_yhat
 
     # Bounding of velocity
-    v = 5*torch.sigmoid(v_raw)
+    v = 10*torch.sigmoid(v_raw)
     # Bounding of angular velocity
-    omega = 5*torch.sigmoid(omega_raw)
+    omega = 10*torch.sigmoid(omega_raw)
 
 
-    return x, y, theta, v, omega
+    return x, y, theta, v_raw, omega_raw
 
 def physics_loss(model, t_list, T, BC):
     """
@@ -111,7 +111,7 @@ def circ_obs_loss(model, t_list, obs, T, BC):
     buffer = 0.05        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = F.softplus((r-d+buffer), beta=1000)
+    violation = F.softplus((r-d+buffer), beta=100)
     return torch.trapz((violation**2).squeeze(), t_list.squeeze())
 
 def rect_obs_loss(model, t_list, obs, T, BC):
@@ -137,7 +137,7 @@ def rect_obs_loss(model, t_list, obs, T, BC):
     buffer = 0.05        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = F.softplus((buffer-d_sdf), beta=1000) 
+    violation = F.softplus((buffer-d_sdf), beta=100) 
     return torch.trapz((violation**2).squeeze(), t_list.squeeze())
 
 def length_loss(model, t_list, T, BC):

@@ -66,12 +66,12 @@ def hard_bc_transform(t, nn_data, T, BC):
     y = y_lin + f_theta * raw_yhat
 
     # Bounding of velocity
-    v = 5*torch.sigmoid(v_raw)
+    v = 10*torch.sigmoid(v_raw)
     # Bounding of angular velocity
-    omega = 5*torch.sigmoid(omega_raw)
+    omega = 10*torch.sigmoid(omega_raw)
 
 
-    return x, y, theta, v, omega
+    return x, y, theta, v_raw, omega_raw
 
 def physics_loss(model, t_list, T, BC):
     """

@@ -8,7 +8,7 @@ from pinnlib.pinn_functions import *
 from pinnlib.training_pinn import train_model
 
 lambda_phys = 10
-lambda_obs = 1e5
+lambda_obs = 1e4
 lambda_length = 0
 lambda_omega = 1e-8
 
@@ -20,13 +20,15 @@ xT, yT = 1.0, 0.0
 BC = [x0,y0,xT,yT]
 
 # Obstacle 1
-x_c1, y_c1, r1 = 0.25, 0.10, 0.12
-
+x_c1, y_c1, r1 = 0.25, 0.15, 0.15
+# x_c1, y_c1, r1 = 0.5, 0.21, 0.2
 # Obstacle 2
-x_c2, y_c2, r2 = 0.5, -0.10, 0.12
+x_c2, y_c2, r2 = 0.50, -0.15, 0.15
+# x_c2, y_c2, r2 = 0.5, -0.21, 0.2
 
 # Obstacle 3
-x_c3, y_c3, r3 = 0.75, 0.10, 0.12
+x_c3, y_c3, r3 = 0.75, 0.15, 0.15
+
 
 obs_circ = [
     [x_c1, y_c1, r1],
@@ -63,8 +65,6 @@ with torch.no_grad():
     print("\nBC check:")
     print(f"x(0)={x0p.item():.6f}, y(0)={y0p.item():.6f}")
     print(f"x(T)={xTp.item():.6f}, y(T)={yTp.item():.6f}")
-
-
 
 
 # -----------------------------------

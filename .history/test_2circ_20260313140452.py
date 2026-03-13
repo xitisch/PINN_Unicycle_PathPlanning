@@ -20,13 +20,15 @@ xT, yT = 1.0, 0.0
 BC = [x0,y0,xT,yT]
 
 # Obstacle 1
-x_c1, y_c1, r1 = 0.25, 0.10, 0.12
-
+x_c1, y_c1, r1 = 0.25, 0.15, 0.2
+# x_c1, y_c1, r1 = 0.5, 0.21, 0.2
 # Obstacle 2
-x_c2, y_c2, r2 = 0.5, -0.10, 0.12
+x_c2, y_c2, r2 = 0.50, -0.15, 0.2
+# x_c2, y_c2, r2 = 0.5, -0.21, 0.2
 
 # Obstacle 3
-x_c3, y_c3, r3 = 0.75, 0.10, 0.12
+x_c3, y_c3, r3 = 0.75, 0.15, 0.2
+
 
 obs_circ = [
     [x_c1, y_c1, r1],
@@ -65,8 +67,6 @@ with torch.no_grad():
     print(f"x(T)={xTp.item():.6f}, y(T)={yTp.item():.6f}")
 
 
-
-
 # -----------------------------------
 # Prepare numpy arrays
 # -----------------------------------
@@ -80,7 +80,7 @@ omega_np = omega.squeeze().cpu().numpy()
 obstacles = [
     {"x_c": x_c1, "y_c": y_c1, "r": r1, "label": "Obstacle 1"},
     {"x_c": x_c2, "y_c": y_c2, "r": r2, "label": "Obstacle 2"},
-    {"x_c": x_c3, "y_c": y_c3, "r": r3, "label": "Obstacle 3"},
+    {"x_c": x_c1, "y_c": y_c1, "r": r1, "label": "Obstacle 1"},
 ]
 
 # -----------------------------------
