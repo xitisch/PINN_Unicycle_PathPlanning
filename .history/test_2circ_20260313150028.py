@@ -20,10 +20,10 @@ xT, yT = 1.0, 0.0
 BC = [x0,y0,xT,yT]
 
 # Obstacle 1
-x_c1, y_c1, r1 = 0.4, 0.15, 0.2
+x_c1, y_c1, r1 = 0.4, 0.10, 0.12
 
 # Obstacle 2
-x_c2, y_c2, r2 = 0.7, -0.15, 0.2
+x_c2, y_c2, r2 = 0.7, -0.10, 0.12
 
 
 obs_circ = [
@@ -77,6 +77,7 @@ omega_np = omega.squeeze().cpu().numpy()
 obstacles = [
     {"x_c": x_c1, "y_c": y_c1, "r": r1, "label": "Obstacle 1"},
     {"x_c": x_c2, "y_c": y_c2, "r": r2, "label": "Obstacle 2"},
+    {"x_c": x_c3, "y_c": y_c3, "r": r3, "label": "Obstacle 3"},
 ]
 
 # -----------------------------------
