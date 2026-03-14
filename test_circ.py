@@ -58,6 +58,7 @@ plt.scatter([x0, xT], [y0, yT])
 plt.title("PINN unicycle path w/ hard x,y BCs)")
 plt.xlabel("x"); plt.ylabel("y"); plt.axis("equal")
 
+# Get current axes
 ax = plt.gca()
 
 # Defining the obstacles visualizations in the plot.
