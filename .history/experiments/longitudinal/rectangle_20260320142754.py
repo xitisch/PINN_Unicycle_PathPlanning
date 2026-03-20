@@ -310,7 +310,7 @@ for j, x_c in enumerate(x_positions):
 fig.suptitle(rf"Trajectories (top) and curvature over time (bottom) ($\mathrm{{fixed}}\ w={width:.2f},\ h={height:.2f}$)", fontsize=18)
 fig.tight_layout(rect=[0, 0, 1, 0.93])
 
-out_path = os.path.join(output_folder, "long_rect_5x2.png")
+out_path = os.path.join(output_folder, "long_circ_5x2.png")
 fig.savefig(out_path, dpi=300, bbox_inches="tight")
 plt.close(fig)
 

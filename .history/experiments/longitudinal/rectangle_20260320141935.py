@@ -1,9 +1,8 @@
 # Vary obstacle x-position (longitudinal), keep rectangle size fixed.
 # Saves:
-#   figures/longitudinal/cicle/long_circ_k_vs_xc.png
-#   figures/longitudinal/cicle/long_rect_5x1.png
-#   figures/longitudinal/cicle/long_rect_5x2.png
-
+#   figures_1D_longitudinal/curvature_vs_xc.png
+#   figures_1D_longitudinal/trajectories_grid_Nx1.png
+#   figures_1D_longitudinal/scenario_results.csv
 
 import os
 import numpy as np
@@ -135,7 +134,7 @@ ax1.set_title(
 )
 ax1.grid(True, alpha=0.3)
 
-path1 = os.path.join(output_folder, "long_rect_k_vs_xc.png")
+path1 = os.path.join(output_folder, "curvature_vs_xc.png")
 fig1.savefig(path1, dpi=300, bbox_inches="tight")
 plt.close(fig1)
 print(f"Saved: {path1}")
@@ -213,7 +212,7 @@ for j, x_c in enumerate(x_positions):
 fig2.suptitle(rf"Trajectories for different $x_c$ ($\mathrm{{fixed}}\ w={width:.2f},\ h={height:.2f}$)", fontsize=18)
 fig2.tight_layout(rect=[0, 0, 1, 0.92])
 
-path2 = os.path.join(output_folder, "long_rect_5x1.png")
+path2 = os.path.join(output_folder, "trajectories_grid_Nx1.png")
 fig2.savefig(path2, dpi=300, bbox_inches="tight")
 plt.close(fig2)
 print(f"Saved: {path2}")
@@ -310,7 +309,7 @@ for j, x_c in enumerate(x_positions):
 fig.suptitle(rf"Trajectories (top) and curvature over time (bottom) ($\mathrm{{fixed}}\ w={width:.2f},\ h={height:.2f}$)", fontsize=18)
 fig.tight_layout(rect=[0, 0, 1, 0.93])
 
-out_path = os.path.join(output_folder, "long_rect_5x2.png")
+out_path = os.path.join(output_folder, "trajectories_and_kappa_5x2.png")
 fig.savefig(out_path, dpi=300, bbox_inches="tight")
 plt.close(fig)
 
