@@ -181,13 +181,8 @@ for j, x_c in enumerate(x_positions):
         ha="left"
     )
 
-fig2.suptitle(
-    rf"Trajectories for different $x_c$ (fixed $r={r_fixed:.2f}$)",
-    fontsize=18,
-    fontweight='bold',
-    y=0.975
-)
-fig2.subplots_adjust(top=0.93, hspace=0.4)
+fig2.suptitle(rf"Trajectories for different $x_c$ (fixed $r={r_fixed:.2f}$)", fontsize=18)
+fig2.tight_layout(rect=[0, 0, 1, 0.92])
 
 path2 = os.path.join(output_folder, "long_circ_5x1.png")
 fig2.savefig(path2, dpi=300, bbox_inches="tight")
@@ -282,11 +277,10 @@ for j, x_c in enumerate(x_positions):
 
 fig.suptitle(
     rf"Trajectories (left) and curvature over time (right) (fixed r={r_fixed:.2f})",
-    fontsize=18,
-    fontweight='bold',
-    y=0.975
-)
-fig.subplots_adjust(top=0.93, hspace=0.4)
+             fontweight='bold', 
+             fontsize=18
+             )
+fig.tight_layout(rect=[0, 0, 1, 0.97])
 
 out_path = os.path.join(output_folder, "long_circ_5x2.png")
 fig.savefig(out_path, dpi=300, bbox_inches="tight")
