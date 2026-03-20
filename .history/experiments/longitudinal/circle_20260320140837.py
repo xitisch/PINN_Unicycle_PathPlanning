@@ -148,7 +148,7 @@ for j, x_c in enumerate(x_positions):
     s = next(ss for ss in scenarios if abs(ss["x_c"] - x_c) < 1e-12)
 
     # trajectory
-    ax.plot(s["x"], s["y"], linewidth=2.5)
+    ax.plot(s["x"], s["y"], linewidth=2)
 
     # reference straight line
     ax.plot([BC[0], BC[2]], [BC[1], BC[3]], linestyle="--", linewidth=1, alpha=0.5)
@@ -166,7 +166,7 @@ for j, x_c in enumerate(x_positions):
     ax.plot([BC[0]], [BC[1]], marker="o")
     ax.plot([BC[2]], [BC[3]], marker="o")
 
-    ax.set_title(f"x_c={x_c:.2f}\nκ_max={s['kappa_max']:.3g}", fontsize=14)
+    ax.set_title(f"x_c={x_c:.2f}\nκ_max={s['kappa_max']:.3g}", fontsize=10)
     ax.set_xlim(*xlim)
     ax.set_ylim(*ylim)
     ax.set_aspect("equal", adjustable="box")
@@ -176,12 +176,12 @@ for j, x_c in enumerate(x_positions):
         0.02, 0.06,
         f"c=({s['x_c']:.2f},{s['y_c']:.2f})\nr={s['r']:.2f}",
         transform=ax.transAxes,
-        fontsize=11,
+        fontsize=8,
         va="bottom",
         ha="left"
     )
 
-fig2.suptitle(rf"Trajectories for different $x_c$ (fixed $r={r_fixed:.2f}$)", fontsize=18)
+fig2.suptitle(rf"Trajectories for different $x_c$ (fixed $r={r_fixed:.2f}$)", fontsize=14)
 fig2.tight_layout(rect=[0, 0, 1, 0.92])
 
 path2 = os.path.join(output_folder, "trajectories_grid_1xN.png")
@@ -212,7 +212,7 @@ k_ylim = (0.0, 1.10 * k_all.max())
 
 fig, axes = plt.subplots(
     len(x_positions), 2,
-    figsize=(8, 3.5 * len(x_positions)),
+    figsize=(4.2 * len(x_positions), 7.8),
     sharex="col"
 )
 
@@ -223,8 +223,8 @@ for j, x_c in enumerate(x_positions):
     s = lookup[x_c]
 
     # Row 1: trajectory
-    ax_traj = axes[j, 0]
-    ax_traj.plot(s["x"], s["y"], linewidth=2.5)
+    ax_traj = axes[0, j]
+    ax_traj.plot(s["x"], s["y"], linewidth=2)
 
     # reference straight line
     ax_traj.plot([BC[0], BC[2]], [BC[1], BC[3]], linestyle="--", linewidth=1, alpha=0.5)
@@ -242,7 +242,7 @@ for j, x_c in enumerate(x_positions):
     ax_traj.plot([BC[0]], [BC[1]], marker="o")
     ax_traj.plot([BC[2]], [BC[3]], marker="o")
 
-    ax_traj.set_title(f"x_c={x_c:.2f}\nκmax={s['kappa_max']:.3g}", fontsize=14)
+    ax_traj.set_title(f"x_c={x_c:.2f}\nκmax={s['kappa_max']:.3g}", fontsize=10)
     ax_traj.set_xlim(*xlim)
     ax_traj.set_ylim(*ylim)
     ax_traj.set_aspect("equal", adjustable="box")
@@ -252,17 +252,17 @@ for j, x_c in enumerate(x_positions):
         0.02, 0.06,
         f"c=({s['x_c']:.2f},{s['y_c']:.2f})\nr={s['r']:.2f}",
         transform=ax_traj.transAxes,
-        fontsize=11,
+        fontsize=8,
         va="bottom",
         ha="left"
     )
 
     # Row 2: curvature over time
-    ax_k = axes[j, 1]
+    ax_k = axes[1, j]
     t_np = s["t"]
     k_np = s["kappa"]
 
-    ax_k.plot(t_np, np.abs(k_np), linewidth=2.5)
+    ax_k.plot(t_np, np.abs(k_np), linewidth=2)
     ax_k.set_ylim(*k_ylim)
     ax_k.grid(True, alpha=0.25)
 
@@ -270,12 +270,12 @@ for j, x_c in enumerate(x_positions):
     idx = np.argmax(np.abs(k_np))
     ax_k.plot([t_np[idx]], [np.abs(k_np[idx])], marker="o")
 
-    ax_traj.set_ylabel("y")
-    ax_k.set_ylabel(r"$|\kappa(t)|$")
-    if j == len(x_positions) - 1:
-        ax_k.set_xlabel("t")
+    if j == 0:
+        ax_traj.set_ylabel("y")
+        ax_k.set_ylabel(r"$|\kappa(t)|$")
+    ax_k.set_xlabel("t")
 
-fig.suptitle(rf"Trajectories (top) and curvature over time (bottom) (fixed r={r_fixed:.2f})", fontsize=18)
+fig.suptitle(rf"Trajectories (top) and curvature over time (bottom) (fixed r={r_fixed:.2f})", fontsize=14)
 fig.tight_layout(rect=[0, 0, 1, 0.93])
 
 out_path = os.path.join(output_folder, "trajectories_and_kappa_2xN.png")

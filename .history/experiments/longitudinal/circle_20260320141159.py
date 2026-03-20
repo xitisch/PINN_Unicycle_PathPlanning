@@ -224,7 +224,7 @@ for j, x_c in enumerate(x_positions):
 
     # Row 1: trajectory
     ax_traj = axes[j, 0]
-    ax_traj.plot(s["x"], s["y"], linewidth=2.5)
+    ax_traj.plot(s["x"], s["y"], linewidth=2.5.5)
 
     # reference straight line
     ax_traj.plot([BC[0], BC[2]], [BC[1], BC[3]], linestyle="--", linewidth=1, alpha=0.5)

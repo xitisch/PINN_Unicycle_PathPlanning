@@ -148,7 +148,7 @@ for j, x_c in enumerate(x_positions):
     s = next(ss for ss in scenarios if abs(ss["x_c"] - x_c) < 1e-12)
 
     # trajectory
-    ax.plot(s["x"], s["y"], linewidth=2.5)
+    ax.plot(s["x"], s["y"], linewidth=2)
 
     # reference straight line
     ax.plot([BC[0], BC[2]], [BC[1], BC[3]], linestyle="--", linewidth=1, alpha=0.5)
@@ -166,7 +166,7 @@ for j, x_c in enumerate(x_positions):
     ax.plot([BC[0]], [BC[1]], marker="o")
     ax.plot([BC[2]], [BC[3]], marker="o")
 
-    ax.set_title(f"x_c={x_c:.2f}\nκ_max={s['kappa_max']:.3g}", fontsize=14)
+    ax.set_title(f"x_c={x_c:.2f}\nκ_max={s['kappa_max']:.3g}", fontsize=10)
     ax.set_xlim(*xlim)
     ax.set_ylim(*ylim)
     ax.set_aspect("equal", adjustable="box")
@@ -176,7 +176,7 @@ for j, x_c in enumerate(x_positions):
         0.02, 0.06,
         f"c=({s['x_c']:.2f},{s['y_c']:.2f})\nr={s['r']:.2f}",
         transform=ax.transAxes,
-        fontsize=11,
+        fontsize=8,
         va="bottom",
         ha="left"
     )
@@ -224,7 +224,7 @@ for j, x_c in enumerate(x_positions):
 
     # Row 1: trajectory
     ax_traj = axes[j, 0]
-    ax_traj.plot(s["x"], s["y"], linewidth=2.5)
+    ax_traj.plot(s["x"], s["y"], linewidth=2)
 
     # reference straight line
     ax_traj.plot([BC[0], BC[2]], [BC[1], BC[3]], linestyle="--", linewidth=1, alpha=0.5)
@@ -242,7 +242,7 @@ for j, x_c in enumerate(x_positions):
     ax_traj.plot([BC[0]], [BC[1]], marker="o")
     ax_traj.plot([BC[2]], [BC[3]], marker="o")
 
-    ax_traj.set_title(f"x_c={x_c:.2f}\nκmax={s['kappa_max']:.3g}", fontsize=14)
+    ax_traj.set_title(f"x_c={x_c:.2f}\nκmax={s['kappa_max']:.3g}", fontsize=10)
     ax_traj.set_xlim(*xlim)
     ax_traj.set_ylim(*ylim)
     ax_traj.set_aspect("equal", adjustable="box")
@@ -252,7 +252,7 @@ for j, x_c in enumerate(x_positions):
         0.02, 0.06,
         f"c=({s['x_c']:.2f},{s['y_c']:.2f})\nr={s['r']:.2f}",
         transform=ax_traj.transAxes,
-        fontsize=11,
+        fontsize=8,
         va="bottom",
         ha="left"
     )
@@ -262,7 +262,7 @@ for j, x_c in enumerate(x_positions):
     t_np = s["t"]
     k_np = s["kappa"]
 
-    ax_k.plot(t_np, np.abs(k_np), linewidth=2.5)
+    ax_k.plot(t_np, np.abs(k_np), linewidth=2)
     ax_k.set_ylim(*k_ylim)
     ax_k.grid(True, alpha=0.25)
 

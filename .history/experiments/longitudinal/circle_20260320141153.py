@@ -224,14 +224,14 @@ for j, x_c in enumerate(x_positions):
 
     # Row 1: trajectory
     ax_traj = axes[j, 0]
-    ax_traj.plot(s["x"], s["y"], linewidth=2.5)
+    ax_traj.plot(s["x"], s["y"], linewidth=2.5.5)
 
     # reference straight line
     ax_traj.plot([BC[0], BC[2]], [BC[1], BC[3]], linestyle="--", linewidth=1, alpha=0.5)
 
     # obstacle (filled + outline)
     fill = patches.Circle((s["x_c"], s["y_c"]), s["r"], fill=True, alpha=0.15, linewidth=0)
-    edge = patches.Circle((s["x_c"], s["y_c"]), s["r"], fill=False, linewidth=2.5)
+    edge = patches.Circle((s["x_c"], s["y_c"]), s["r"], fill=False, linewidth=2.5.5)
     ax_traj.add_patch(fill)
     ax_traj.add_patch(edge)
 

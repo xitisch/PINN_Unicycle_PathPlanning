@@ -148,7 +148,7 @@ for j, x_c in enumerate(x_positions):
     s = next(ss for ss in scenarios if abs(ss["x_c"] - x_c) < 1e-12)
 
     # trajectory
-    ax.plot(s["x"], s["y"], linewidth=2.5)
+    ax.plot(s["x"], s["y"], linewidth=2)
 
     # reference straight line
     ax.plot([BC[0], BC[2]], [BC[1], BC[3]], linestyle="--", linewidth=1, alpha=0.5)
@@ -224,7 +224,7 @@ for j, x_c in enumerate(x_positions):
 
     # Row 1: trajectory
     ax_traj = axes[j, 0]
-    ax_traj.plot(s["x"], s["y"], linewidth=2.5)
+    ax_traj.plot(s["x"], s["y"], linewidth=2)
 
     # reference straight line
     ax_traj.plot([BC[0], BC[2]], [BC[1], BC[3]], linestyle="--", linewidth=1, alpha=0.5)
@@ -262,7 +262,7 @@ for j, x_c in enumerate(x_positions):
     t_np = s["t"]
     k_np = s["kappa"]
 
-    ax_k.plot(t_np, np.abs(k_np), linewidth=2.5)
+    ax_k.plot(t_np, np.abs(k_np), linewidth=2)
     ax_k.set_ylim(*k_ylim)
     ax_k.grid(True, alpha=0.25)
 
