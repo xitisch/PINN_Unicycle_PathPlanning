@@ -26,7 +26,7 @@ class PINN(nn.Module):
     def forward(self, t):
         return self.net(t)
 
-# Network outputs: x_nn, y_nn, theta, v_nn
+# Network outputs: raw_xhat, raw_yhat, theta, v_raw
 # We'll enforce x,y BCs via transformation; theta and v are free ().
 model = PINN(out_dim=5)
 
@@ -46,11 +46,11 @@ def derivative(y,x):
 # Loss functions
 
 def hard_bc_transform(t, nn_data, T, BC):
-    x_nn = nn_data[:, 0:1]
-    y_nn = nn_data[:, 1:2]
-    theta_nn = nn_data[:, 2:3]
-    v_nn    = nn_data[:, 3:4]
-    omega_nn    = nn_data[:, 4:5]
+    raw_xhat = nn_data[:, 0:1]
+    raw_yhat = nn_data[:, 1:2]
+    theta    = nn_data[:, 2:3]
+    v_raw    = nn_data[:, 3:4]
+    omega_raw    = nn_data[:, 4:5]
     
     # Boundary Conditions
     x0 = BC[0]
@@ -59,23 +59,19 @@ def hard_bc_transform(t, nn_data, T, BC):
     yT = BC[3]
     v0 = 1
 
-    x = x0 * (1 - t/T) + xT * (t/T) + t * (T - t) * x_nn
-    y = y0 * (1 - t/T) + yT * (t/T) + t * (T - t) * y_nn
+    x_lin = x0 * (1 - (t / T)) + (t / T) * xT
+    y_lin = y0 * (1 - (t / T)) + (t / T) * yT
 
-    v_free = 5 * torch.sigmoid(v_nn)
-    alpha = 5.0
-    exp_term = torch.exp(-alpha * t)
-    v = v0 * exp_term + v_free * (1 - exp_term)
+    f_theta = t * (T - t)
+    x = x_lin + f_theta * raw_xhat
+    y = y_lin + f_theta * raw_yhat
 
-    theta0 = 0.0
+    v = 
 
-    theta_free = 5 * torch.sigmoid(theta_nn)
-
-    theta = theta0 * exp_term + theta_free * (1 - exp_term)
     # Bounding of velocity
-    # v = 5*torch.sigmoid(v_nn)
+    v = 5*torch.sigmoid(v_raw)
     # Bounding of angular velocity
-    omega = 5*torch.sigmoid(omega_nn)
+    omega = 5*torch.sigmoid(omega_raw)
 
 
     return x, y, theta, v, omega

@@ -9,6 +9,7 @@ from pinnlib.training_pinn import train_model
 
 lambda_phys = 10
 lambda_obs = 1e5
+lambda_length = 0
 lambda_omega = 1e-8
 
 T = 1
@@ -42,6 +43,7 @@ model = train_model(
     obs=obs_circ,
     lambda_phys=lambda_phys,
     lambda_obs=lambda_obs,
+    lambda_length=lambda_length,
     lambda_omega=lambda_omega,
     epochs=2000,
     N=200

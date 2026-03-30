@@ -48,7 +48,7 @@ def derivative(y,x):
 def hard_bc_transform(t, nn_data, T, BC):
     x_nn = nn_data[:, 0:1]
     y_nn = nn_data[:, 1:2]
-    theta_nn = nn_data[:, 2:3]
+    theta    = nn_data[:, 2:3]
     v_nn    = nn_data[:, 3:4]
     omega_nn    = nn_data[:, 4:5]
     
@@ -67,11 +67,11 @@ def hard_bc_transform(t, nn_data, T, BC):
     exp_term = torch.exp(-alpha * t)
     v = v0 * exp_term + v_free * (1 - exp_term)
 
-    theta0 = 0.0
+    omega0 = 0.0
 
-    theta_free = 5 * torch.sigmoid(theta_nn)
+    omega_free = 5 * torch.sigmoid(omega_nn)
 
-    theta = theta0 * exp_term + theta_free * (1 - exp_term)
+    omega = omega0 * exp_term + omega_free * (1 - exp_term)
     # Bounding of velocity
     # v = 5*torch.sigmoid(v_nn)
     # Bounding of angular velocity

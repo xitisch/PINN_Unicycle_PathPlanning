@@ -9,6 +9,7 @@ from pinnlib.training_pinn import train_model
 
 lambda_phys = 10
 lambda_obs = 1e5
+lambda_length = 0
 lambda_omega = 1e-8
 
 T = 1
@@ -19,15 +20,18 @@ xT, yT = 1.0, 0.0
 BC = [x0,y0,xT,yT]
 
 # Obstacle 1
-x_c1, y_c1, r1 = 0.4, 0.2, 0.2
+x_c1, y_c1, r1 = 0.25, 0.10, 0.12
 
 # Obstacle 2
-x_c2, y_c2, r2 = 0.7, -0.2, 0.2
+x_c2, y_c2, r2 = 0.5, -0.10, 0.12
 
+# Obstacle 3
+x_c3, y_c3, r3 = 0.75, 0.10, 0.12
 
 obs_circ = [
     [x_c1, y_c1, r1],
-    [x_c2, y_c2, r2]
+    [x_c2, y_c2, r2],
+    [x_c3, y_c3, r3]
 ]
 
 t_list = torch.linspace(0.0, T, N, device=device).view(-1, 1)
@@ -42,6 +46,7 @@ model = train_model(
     obs=obs_circ,
     lambda_phys=lambda_phys,
     lambda_obs=lambda_obs,
+    lambda_length=lambda_length,
     lambda_omega=lambda_omega,
     epochs=2000,
     N=200
@@ -75,6 +80,7 @@ omega_np = omega.squeeze().cpu().numpy()
 obstacles = [
     {"x_c": x_c1, "y_c": y_c1, "r": r1, "label": "Obstacle 1"},
     {"x_c": x_c2, "y_c": y_c2, "r": r2, "label": "Obstacle 2"},
+    {"x_c": x_c3, "y_c": y_c3, "r": r3, "label": "Obstacle 3"},
 ]
 
 # -----------------------------------

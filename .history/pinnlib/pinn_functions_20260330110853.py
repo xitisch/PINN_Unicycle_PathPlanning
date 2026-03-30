@@ -147,21 +147,6 @@ def rect_obs_loss(model, t_list, obs, T, BC):
     violation = F.softplus((buffer-d_sdf), beta=1000) 
     return torch.trapz((violation**2).squeeze(), t_list.squeeze())
 
-def length_loss(model, t_list, T, BC):
-    """
-    Input: model, list of time, boundary conditions description (x0,y0,xT,yT)
-    Ouptut: loss function value of the length. 
-    """
-    nn_input = model(t_list)
-    x, y, _, _, _ = hard_bc_transform(t_list, nn_input, T, BC)
-
-    x_t = derivative(x, t_list)
-    y_t = derivative(y, t_list)
-
-    sqrt = torch.sqrt(x_t**2 + y_t**2)
-
-    return torch.trapz(sqrt.squeeze(), t_list.squeeze())
-
 def smooth_loss(model, t_list, T, BC):
     """
     Input: model, list of time, boundary conditions description (x0,y0,xT,yT)

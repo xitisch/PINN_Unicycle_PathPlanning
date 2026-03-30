@@ -50,6 +50,7 @@ def train_model(
         loss = (
             lambda_phys * L_phys
             + lambda_obs * L_obs
+            + lambda_length * L_length
             + lambda_omega * L_omega
         )
 

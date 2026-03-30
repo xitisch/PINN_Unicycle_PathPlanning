@@ -48,6 +48,7 @@ N = 100
 
 lambda_phys = 1
 lambda_obs = 10
+lambda_length = 0
 lambda_omega = 0.0001
 
 BC = [0, 0, 1, 0]  # Start (0,0) -> Goal (1,0)
@@ -94,6 +95,7 @@ for x_c in x_positions:
         epochs=2000,
         lambda_phys=lambda_phys,
         lambda_obs=lambda_obs,
+        lambda_length=lambda_length,
         lambda_omega=lambda_omega,
         N=N
     )
