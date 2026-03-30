@@ -9,7 +9,7 @@ from pinnlib.pinn_functions import *
 
 # Training setup:
 # Repeateldly adjusting the NN's parameters so that 
-# its output trajectory satisfies physics and constraints by minimizing loss functions.
+# its output trajectory satisfies phyics and constraints by minimizing loss functions.
 
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 # lr = eta, the factors that is multiplied with the gradient of the loss. 
@@ -40,7 +40,7 @@ ymin = y_c - h/2
 ymax = y_c + h/2
 obs_rect = [xmin, xmax, ymin, ymax]
 
-lambda_phys = 1
+lambda_phy = 1
 lambda_circ_obs = 0.1
 lambda_rect_obs = 1
 lambda_optim = 0
@@ -50,11 +50,11 @@ for epoch in range(num_epochs):
     optimizer.zero_grad()
 
     # Compute losses
-    L_phys = physics_loss(model, t_list, T, BC)
+    L_phy = phyics_loss(model, t_list, T, BC)
     L_circ_obs = circ_obs_loss(model, t_list, obs_circ, T, BC)
     L_length = length_loss(model, t_list, T, BC)
 
-    loss = lambda_phys * L_phys + lambda_circ_obs * L_circ_obs + lambda_length * L_length
+    loss = lambda_phy * L_phy + lambda_circ_obs * L_circ_obs + lambda_length * L_length
     loss.backward()
     optimizer.step()
 
