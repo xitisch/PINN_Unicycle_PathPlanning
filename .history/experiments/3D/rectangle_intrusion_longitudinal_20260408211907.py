@@ -47,7 +47,7 @@ N = 100
 
 lambda_phy = 1
 lambda_obs = 10
-lambda_smooth = 1e-2
+lambda_omega = 1e-4
 
 BC = [0, 0, 1, 0]  # Start (0,0) -> Goal (1,0)
 
@@ -57,7 +57,7 @@ w = torch.sqrt(torch.tensor(2.0)) * r   # width (x-direction)
 h = torch.sqrt(torch.tensor(2.0)) * r   # height (y-direction)
 
 # Vary longitudinal obstacle position
-x_positions = np.arange(0.25, 0.75 + 1e-9, 0.10)
+x_positions = np.arange(0.25, 0.75 + 1e-9, 0.05)
 Delta_values = np.arange(0.0, 0.2 + 1e-9, 0.05)
 
 
@@ -102,7 +102,7 @@ for i, Delta in enumerate(Delta_values):
             epochs=2000,
             lambda_phy=lambda_phy,
             lambda_obs=lambda_obs,
-            lambda_smooth=lambda_smooth,
+            lambda_omega=lambda_omega,
             N=N
         )
 

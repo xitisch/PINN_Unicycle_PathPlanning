@@ -112,7 +112,7 @@ def circ_obs_loss(model, t_list, obs, T, BC):
     r = obs[2]
     d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
 
-    buffer = 0.01        # Buffer zone
+    buffer = 0.05        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
     violation = F.softplus((r-d+buffer), beta=80)
@@ -138,7 +138,7 @@ def rect_obs_loss(model, t_list, obs, T, BC):
 
     d_sdf = rect_sdf(x_L, y_L, xmin, xmax, ymin, ymax)
 
-    buffer = 0.01        # Buffer zone
+    buffer = 0.05        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
     violation = F.softplus((buffer-d_sdf), beta=80) 
@@ -197,8 +197,8 @@ def rect_sdf(x, y, xmin, xmax, ymin, ymax):
     qy = torch.abs(y - y_c) - by
 
     # outside distance
-    ox = F.softplus(qx, beta=50)
-    oy = F.softplus(qy, beta=50)
+    ox = F.softplus(qx, beta=100)
+    oy = F.softplus(qy, beta=100)
     # ox = torch.relu(qx)
     # oy = torch.relu(qy)
     outside = torch.sqrt(ox**2 + oy**2)

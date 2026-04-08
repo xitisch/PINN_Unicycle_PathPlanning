@@ -6,7 +6,7 @@ def train_model(
     obs=None,
     lambda_phy=1,
     lambda_obs=10,
-    lambda_smooth=0.0001,
+    lambda_omega=0.0001,
     epochs=2000,
     lr=0.001,
     N=100
@@ -45,12 +45,12 @@ def train_model(
 
         L_length = length_loss(model, t_list, T, BC)
 
-        L_smooth = smooth_loss(model, t_list, T, BC)
+        L_omega = smooth_loss(model, t_list, T, BC)
 
         loss = (
             lambda_phy * L_phy
             + lambda_obs * L_obs
-            + lambda_smooth * L_smooth
+            + lambda_omega * L_omega
         )
 
         if epoch % 500 == 0:
@@ -58,7 +58,7 @@ def train_model(
             print(loss.item())
             print("L_phy:", lambda_phy * L_obs.item())
             print("L_obs:", lambda_obs * L_phy.item())
-            print("L_smooth:", lambda_smooth * L_smooth.item())
+            print("L_omega:", lambda_omega * L_omega.item())
         loss.backward()
         optimizer.step()
 

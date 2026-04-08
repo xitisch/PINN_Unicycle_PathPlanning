@@ -197,8 +197,8 @@ def rect_sdf(x, y, xmin, xmax, ymin, ymax):
     qy = torch.abs(y - y_c) - by
 
     # outside distance
-    ox = F.softplus(qx, beta=50)
-    oy = F.softplus(qy, beta=50)
+    ox = F.softplus(qx, beta=100)
+    oy = F.softplus(qy, beta=100)
     # ox = torch.relu(qx)
     # oy = torch.relu(qy)
     outside = torch.sqrt(ox**2 + oy**2)

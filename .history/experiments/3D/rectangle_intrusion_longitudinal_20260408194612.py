@@ -47,18 +47,17 @@ N = 100
 
 lambda_phy = 1
 lambda_obs = 10
-lambda_smooth = 1e-2
+lambda_omega = 0.0001
 
 BC = [0, 0, 1, 0]  # Start (0,0) -> Goal (1,0)
 
 # Rectangle dimensions
-r = torch.tensor(0.2)
-w = torch.sqrt(torch.tensor(2.0)) * r   # width (x-direction)
-h = torch.sqrt(torch.tensor(2.0)) * r   # height (y-direction)
+w = 0.40   # width (x-direction)
+h = 0.40   # height (y-direction)
 
 # Vary longitudinal obstacle position
-x_positions = np.arange(0.25, 0.75 + 1e-9, 0.10)
-Delta_values = np.arange(0.0, 0.2 + 1e-9, 0.05)
+x_positions = np.arange(0.25, 0.75 + 1e-9, 0.05)
+Delta_values = np.arange(0.0, 0.2 + 1e-9, 0.04)
 
 
 # Grids
@@ -79,9 +78,8 @@ total = len(Delta_values) * len(x_positions)
 for i, Delta in enumerate(Delta_values):
 
     # Define rectangle vertical bounds from intrusion
-    y_c = h/2 - Delta
-    ymin = y_c - h/2
-    ymax = y_c + h/2
+    ymax = Delta
+    ymin = Delta - h
 
     print(f"\n=== Delta = {Delta:.3f} → ymax = {ymax:.3f} ===")
 
@@ -102,7 +100,7 @@ for i, Delta in enumerate(Delta_values):
             epochs=2000,
             lambda_phy=lambda_phy,
             lambda_obs=lambda_obs,
-            lambda_smooth=lambda_smooth,
+            lambda_omega=lambda_omega,
             N=N
         )
 

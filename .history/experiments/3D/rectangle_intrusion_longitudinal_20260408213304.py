@@ -47,7 +47,7 @@ N = 100
 
 lambda_phy = 1
 lambda_obs = 10
-lambda_smooth = 1e-2
+lambda_omega = 1e-3
 
 BC = [0, 0, 1, 0]  # Start (0,0) -> Goal (1,0)
 
@@ -102,7 +102,7 @@ for i, Delta in enumerate(Delta_values):
             epochs=2000,
             lambda_phy=lambda_phy,
             lambda_obs=lambda_obs,
-            lambda_smooth=lambda_smooth,
+            lambda_omega=lambda_omega,
             N=N
         )
 

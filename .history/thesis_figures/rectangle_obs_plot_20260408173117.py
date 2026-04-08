@@ -9,9 +9,9 @@ ymin, ymax = yc - h/2, yc + h/2
 
 # Define 3 scenarios
 scenarios = [
-    ("(i) Outside–Outside", (0.85, 0.45)),
-    ("(ii) Inside–Outside", (0.4, 0.5)),
-    ("(iii) Inside–Inside", (0.4, 0.1)),
+    ("Both outside (corner)", (0.85, 0.45)),
+    ("One inside, one outside", (0.4, 0.5)),
+    ("Both inside", (0.4, 0.1)),
 ]
 
 fig, axes = plt.subplots(1, 3, figsize=(12, 4))

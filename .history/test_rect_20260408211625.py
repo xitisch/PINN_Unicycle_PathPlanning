@@ -8,11 +8,11 @@ from pinnlib.training_pinn import train_model
 
 """lambda_phy = 10
 lambda_obs = 1e5
-lambda_smooth = 1e-8"""
+lambda_omega = 1e-8"""
 
 lambda_phy = 1
 lambda_obs = 10
-lambda_smooth = 0.0001
+lambda_omega = 0.0001
 
 
 T = 1
@@ -61,7 +61,7 @@ model = train_model(
     obs=obs_rect,
     lambda_phy=lambda_phy,
     lambda_obs=lambda_obs,
-    lambda_smooth=lambda_smooth,
+    lambda_omega=lambda_omega,
     epochs=2000,
     N=200
 )
