@@ -4,17 +4,16 @@ import torch
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-from pinnlib.pinnsfunctions import *
-from pinnlib.trainingNN import train_model
+from pinnlib.pinn_functions import *
+from pinnlib.training_pinn import train_model
 
 
 # Setup
 T = 1.0
 N = 100
 
-lambda_phys = 1
+lambda_phy = 1
 lambda_obs = 10
-lambda_length = 0
 lambda_omega = 0.0001
 
 BC = [0, 0, 1, 0]
@@ -31,7 +30,7 @@ device = "cpu"
 t_list = torch.linspace(0.0, T, N, device=device).view(-1, 1)
 t_list.requires_grad_(True)
 
-output_folder = "figures_1D_radius"
+output_folder = os.path.join("figures", "radius", "circle")
 os.makedirs(output_folder, exist_ok=True)
 
 def compute_curvature(model, t_list, T, BC):
@@ -67,16 +66,15 @@ scenarios = []
 
 for r in radii:
     print(f"Training for radius r = {r:.2f}")
-    obs = [x_c, y_c, r]
+    obs = [[x_c, y_c, r]]
 
     model = train_model(
         T=T,
         BC=BC,
         obs=obs,
         epochs=2000,
-        lambda_phys=lambda_phys,
+        lambda_phy=lambda_phy,
         lambda_obs=lambda_obs,
-        lambda_length=lambda_length,
         lambda_omega=lambda_omega,
         N=N
     )
@@ -96,9 +94,8 @@ for r in radii:
     })
 
 
-# -----------------------------
+
 # Plot 1: kappa_max vs R
-# -----------------------------
 fig1, ax1 = plt.subplots(figsize=(7,4))
 
 Rs = np.array([s["r"] for s in scenarios])
@@ -114,9 +111,7 @@ fig1.savefig(os.path.join(output_folder, "kappa_vs_radius.png"), dpi=300)
 plt.close(fig1)
 
 
-# -----------------------------
 # Plot 2: trajectories (1xN)
-# -----------------------------
 fig2, axes = plt.subplots(1, len(radii), figsize=(4.5*len(radii), 4.5), sharey=True)
 
 if len(radii) == 1:
