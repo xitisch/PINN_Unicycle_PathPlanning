@@ -34,7 +34,7 @@ radii = [0.1, 0.15, 0.2, 0.25]
 y_positions = [0.00, 0.05, 0.10, 0.15]
 
 T = 1
-N = 200
+N = 100
 
 lambda_phy = 1
 lambda_obs = 1

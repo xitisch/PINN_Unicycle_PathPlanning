@@ -59,7 +59,7 @@ def hard_bc_transform(t, nn_data, T, BC):
     yT = BC[3]
     v0 = BC[4]
     v0 = 2
-    theta0 = BC[5]
+    v0 = BC[5]
     theta0 = 0.0
 
     v_free = 5 * torch.sigmoid(v_nn)

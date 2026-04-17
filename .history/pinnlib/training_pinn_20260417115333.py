@@ -5,8 +5,8 @@ def train_model(
     BC,
     obs=None,
     lambda_phy=1,
-    lambda_obs=1,
-    lambda_smooth=1,
+    lambda_obs=10,
+    lambda_smooth=0.0001,
     epochs=2000,
     lr=0.001,
     N=100
@@ -44,7 +44,7 @@ def train_model(
 
         eps = 1e-8
 
-        # Normalize
+        # normalize
         L_phy_norm = L_phy / (scale_phy + eps)
         L_obs_norm = L_obs / (scale_obs + eps)
         L_smooth_norm = L_smooth / (scale_smooth + eps)

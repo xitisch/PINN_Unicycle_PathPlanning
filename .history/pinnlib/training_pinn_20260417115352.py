@@ -5,7 +5,7 @@ def train_model(
     BC,
     obs=None,
     lambda_phy=1,
-    lambda_obs=1,
+    lambda_obs=10,
     lambda_smooth=1,
     epochs=2000,
     lr=0.001,

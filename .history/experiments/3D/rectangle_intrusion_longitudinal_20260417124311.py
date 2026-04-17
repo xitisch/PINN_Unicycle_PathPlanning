@@ -43,11 +43,11 @@ def get_trajectory(model, t_list, T, BC):
 
 # Experiment setup 
 T = 1.0
-N = 200
+N = 100
 
 lambda_phy = 1
-lambda_obs = 1
-lambda_smooth = 1
+lambda_obs = 10
+lambda_smooth = 1e-2
 
 x0, y0 = 0.0, 0.0
 xT, yT = 1.0, 0.0

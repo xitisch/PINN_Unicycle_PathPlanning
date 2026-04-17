@@ -32,7 +32,7 @@ def get_trajectory(model, t_list, T, BC):
     return x.squeeze().cpu().numpy(), y.squeeze().cpu().numpy()
 
 T = 1
-N = 200
+N = 100
 
 lambda_phy = 1
 lambda_obs = 1
