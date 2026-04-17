@@ -6,20 +6,19 @@ import numpy as np
 from pinnlib.pinn_functions import *
 from pinnlib.training_pinn import train_model
 
-lambda_phys = 1
-lambda_obs = 10
-lambda_length = 0
-lambda_omega = 0.0001
+lambda_phy = 1
+lambda_obs = 1
+lambda_smooth = 0.1
 
 T = 1
-N = 100
+N = 200
 
 x0, y0 = 0.0, 0.0
 xT, yT = 1.0, 0.0
 BC = [x0,y0,xT,yT]
 
 x_c, y_c, r = 0.5, 0.1, 0.3
-obs_circ = [x_c, y_c, r]
+obs_circ = [[x_c, y_c, r]]
 
 t_list = torch.linspace(0.0, T, N, device=device).view(-1, 1)
 t_list.requires_grad_(True)
@@ -31,10 +30,9 @@ model = train_model(
     T=T,
     BC=[0, 0, 1, 0],
     obs=obs_circ,
-    lambda_phys=lambda_phys,
+    lambda_phy=lambda_phy,
     lambda_obs=lambda_obs,
-    lambda_length=lambda_length,
-    lambda_omega=lambda_omega,
+    lambda_smooth=lambda_smooth,
     epochs=2000,
     N=200
 )
@@ -58,6 +56,7 @@ plt.scatter([x0, xT], [y0, yT])
 plt.title("PINN unicycle path w/ hard x,y BCs)")
 plt.xlabel("x"); plt.ylabel("y"); plt.axis("equal")
 
+# Get current axes
 ax = plt.gca()
 
 # Defining the obstacles visualizations in the plot.

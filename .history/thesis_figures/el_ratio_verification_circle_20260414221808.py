@@ -302,7 +302,7 @@ def main():
     plt.legend()
     plt.tight_layout()
     plt.ylim(-0.04, 0.04)
-
+    
     plt.show()
 
     plt.figure(figsize=(7, 4.5))
@@ -325,7 +325,6 @@ def main():
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    plt.ylim(-0.04, 0.04)
     plt.show()
 
 

@@ -58,9 +58,9 @@ def train_model(
         if epoch % 500 == 0:
             print(f"Epoch {epoch}/{epochs}")
             print(loss.item())
-            print("L_phy:", lambda_phy * L_phy_norm.item())
-            print("L_obs:", lambda_obs * L_obs_norm.item())
-            print("L_smooth:", lambda_smooth * L_smooth_norm.item())
+            print("L_phy:", lambda_phy * L_phy.item())
+            print("L_obs:", lambda_obs * L_obs.item())
+            print("L_smooth:", lambda_smooth * L_smooth.item())
         loss.backward()
         optimizer.step()
 

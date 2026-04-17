@@ -6,13 +6,13 @@ import numpy as np
 from pinnlib.pinn_functions import *
 from pinnlib.training_pinn import train_model
 
-lambda_phy = 10
+lambda_phy = 1
 lambda_obs = 1
 lambda_smooth = 0.1
 
 T = 1
 N = 200
-epochs=3000
+epochs=4000
 
 x0, y0 = 0.0, 0.0
 xT, yT = 1.0, 0.0
@@ -34,8 +34,8 @@ model = train_model(
     lambda_phy=lambda_phy,
     lambda_obs=lambda_obs,
     lambda_smooth=lambda_smooth,
-    epochs=epochs,
-    N=N
+    epochs=4000,
+    N=200
 )
 
 with torch.no_grad():

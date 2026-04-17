@@ -60,8 +60,8 @@ def hard_bc_transform(t, nn_data, T, BC):
     v0 = 2
     theta0 = 0.0
     
-    # x = x0 * (1 - t/T) + xT * (t/T) + t * (T - t) * x_nn
-    # y = y0 * (1 - t/T) + yT * (t/T) + t * (T - t) * y_nn
+    x = x0 * (1 - t/T) + xT * (t/T) + t * (T - t) * x_nn
+    y = y0 * (1 - t/T) + yT * (t/T) + t * (T - t) * y_nn
 
     v_free = 5 * torch.sigmoid(v_nn)
     alpha = 5.0
@@ -124,7 +124,7 @@ def circ_obs_loss(model, t_list, obs, T, BC):
     r = obs[2]
     d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
 
-    buffer = 0.05        # Buffer zone
+    buffer = 0.01        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
     violation = F.softplus((r-d+buffer), beta=80)
@@ -150,7 +150,7 @@ def rect_obs_loss(model, t_list, obs, T, BC):
 
     d_sdf = rect_sdf(x_L, y_L, xmin, xmax, ymin, ymax)
 
-    buffer = 0.05        # Buffer zone
+    buffer = 0.01        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
     violation = F.softplus((buffer-d_sdf), beta=80) 

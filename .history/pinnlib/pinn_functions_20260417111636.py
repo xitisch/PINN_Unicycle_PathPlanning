@@ -58,34 +58,37 @@ def hard_bc_transform(t, nn_data, T, BC):
     xT = BC[2]
     yT = BC[3]
     v0 = 2
-    theta0 = 0.0
-    
-    # x = x0 * (1 - t/T) + xT * (t/T) + t * (T - t) * x_nn
-    # y = y0 * (1 - t/T) + yT * (t/T) + t * (T - t) * y_nn
+
+    x = x0 * (1 - t/T) + xT * (t/T) + t * (T - t) * x_nn
+    y = y0 * (1 - t/T) + yT * (t/T) + t * (T - t) * y_nn
 
     v_free = 5 * torch.sigmoid(v_nn)
     alpha = 5.0
     exp_term = torch.exp(-alpha * t)
     v = v0 + t * v_free
 
+    theta0 = 0.0
     theta_free = 5*torch.sigmoid(omega_nn)
     theta = theta0 + t * theta_free
+    # v = 5*torch.sigmoid(v_nn)
+    # Bounding of angular velocity
+    # omega = 5*torch.sigmoid(omega_nn)
 
 
     # Linear + quadratic terms
-    x_lin = x0 + (v0 * torch.cos(torch.tensor(theta0))) * t
-    y_lin = y0 + (v0 * torch.sin(torch.tensor(theta0))) * t
+x_lin = x0 + (v0 * torch.cos(torch.tensor(theta0))) * t
+y_lin = y0 + (v0 * torch.sin(torch.tensor(theta0))) * t
 
-    x_quad = ((xT - x0 - v0 * torch.cos(torch.tensor(theta0)) * T) / (T**2)) * (t**2)
-    y_quad = ((yT - y0 - v0 * torch.sin(torch.tensor(theta0)) * T) / (T**2)) * (t**2)
+x_quad = ((xT - x0 - v0 * torch.cos(torch.tensor(theta0)) * T) / (T**2)) * (t**2)
+y_quad = ((yT - y0 - v0 * torch.sin(torch.tensor(theta0)) * T) / (T**2)) * (t**2)
 
-    # Neural network correction (IMPORTANT: t^2 term!)
-    x_nn_term = (t**2) * (T - t) * x_nn
-    y_nn_term = (t**2) * (T - t) * y_nn
+# Neural network correction (IMPORTANT: t^2 term!)
+x_nn_term = (t**2) * (T - t) * x_nn
+y_nn_term = (t**2) * (T - t) * y_nn
 
-    # Final positions
-    x = x_lin + x_quad + x_nn_term
-    y = y_lin + y_quad + y_nn_term
+# Final positions
+x = x_lin + x_quad + x_nn_term
+y = y_lin + y_quad + y_nn_term
 
     return x, y, theta, v, omega_nn
 
@@ -124,7 +127,7 @@ def circ_obs_loss(model, t_list, obs, T, BC):
     r = obs[2]
     d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
 
-    buffer = 0.05        # Buffer zone
+    buffer = 0.01        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
     violation = F.softplus((r-d+buffer), beta=80)
@@ -150,7 +153,7 @@ def rect_obs_loss(model, t_list, obs, T, BC):
 
     d_sdf = rect_sdf(x_L, y_L, xmin, xmax, ymin, ymax)
 
-    buffer = 0.05        # Buffer zone
+    buffer = 0.01        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
     violation = F.softplus((buffer-d_sdf), beta=80) 

@@ -35,32 +35,22 @@ def train_model(
                 elif len(obstacle) == 4:
                     L_obs += rect_obs_loss(model, t_list, obstacle, T, BC)
 
+        L_length = length_loss(model, t_list, T, BC)
+
         L_smooth = smooth_loss(model, t_list, T, BC)
-        
-        if epoch == 0:
-            scale_phy = L_phy.detach()
-            scale_obs = L_obs.detach()
-            scale_smooth = L_smooth.detach()
-
-        eps = 1e-8
-
-        # --- normalize ---
-        L_phy_norm = L_phy / (scale_phy + eps)
-        L_obs_norm = L_obs / (scale_obs + eps)
-        L_smooth_norm = L_smooth / (scale_smooth + eps)
 
         loss = (
-            lambda_phy * L_phy_norm
-            + lambda_obs * L_obs_norm
-            + lambda_smooth * L_smooth_norm
+            lambda_phy * L_phy
+            + lambda_obs * L_obs
+            + lambda_smooth * L_smooth
         )
 
         if epoch % 500 == 0:
             print(f"Epoch {epoch}/{epochs}")
             print(loss.item())
-            print("L_phy:", lambda_phy * L_phy_norm.item())
-            print("L_obs:", lambda_obs * L_obs_norm.item())
-            print("L_smooth:", lambda_smooth * L_smooth_norm.item())
+            print("L_phy:", lambda_phy * L_phy.item())
+            print("L_obs:", lambda_obs * L_obs.item())
+            print("L_smooth:", lambda_smooth * L_smooth.item())
         loss.backward()
         optimizer.step()
 

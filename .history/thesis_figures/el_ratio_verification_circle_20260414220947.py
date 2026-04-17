@@ -6,11 +6,6 @@ import os
 from pinnlib.pinn_functions import *
 from pinnlib.training_pinn import train_model
 
-# =========================
-# OUTPUT FOLDER
-# =========================
-output_folder = "figures/el_verification_circle"
-os.makedirs(output_folder, exist_ok=True)
 
 # ============================================================
 # Helper functions
@@ -205,11 +200,7 @@ def main():
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    
-    plt.savefig(os.path.join(output_folder, "trajectory.png"), dpi=300)
-
     plt.show()
-    plt.close()
 
     # ============================================================
     # Plot 1: Spatial EL, x-direction (LHS vs RHS)
@@ -223,11 +214,7 @@ def main():
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    plt.ylim(-0.04, 0.04)
-    plt.savefig(os.path.join(output_folder, "spatial_EL_x.png"), dpi=300)
-
     plt.show()
-    plt.close()
 
     # ============================================================
     # Plot 2: Spatial EL, y-direction (LHS vs RHS)
@@ -240,12 +227,8 @@ def main():
     plt.title("Spatial EL verification in y-direction")
     plt.grid(True)
     plt.legend()
-    plt.ylim(-0.04, 0.04)
-
-    plt.savefig(os.path.join(output_folder, "spatial_EL_y.png"), dpi=300)
-
+    plt.tight_layout()
     plt.show()
-    plt.close()
 
     # ============================================================
     # Plot 3: Velocity EL (LHS vs RHS)
@@ -259,11 +242,7 @@ def main():
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    plt.ylim(-0.04, 0.04)
-
-    plt.savefig(os.path.join(output_folder, "velocity_EL.png"), dpi=300)
     plt.show()
-    plt.close()
 
     # ============================================================
     # Plot 4: Angular relation (LHS vs RHS)
@@ -277,11 +256,7 @@ def main():
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    plt.ylim(-0.04, 0.04)
-
-    plt.savefig(os.path.join(output_folder, "angular_EL.png"), dpi=300)
     plt.show()
-    plt.close()
 
     # ============================================================
     # Optional error plots
@@ -301,8 +276,6 @@ def main():
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    plt.ylim(-0.04, 0.04)
-
     plt.show()
 
     plt.figure(figsize=(7, 4.5))
@@ -325,7 +298,6 @@ def main():
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    plt.ylim(-0.04, 0.04)
     plt.show()
 
 

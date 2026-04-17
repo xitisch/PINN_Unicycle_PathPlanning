@@ -6,8 +6,8 @@ import numpy as np
 from pinnlib.pinn_functions import *
 from pinnlib.training_pinn import train_model
 
-lambda_phy = 10
-lambda_obs = 1
+lambda_phy = 1
+lambda_obs = 10
 lambda_smooth = 0.1
 
 T = 1

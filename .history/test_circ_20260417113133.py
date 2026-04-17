@@ -6,10 +6,9 @@ import numpy as np
 from pinnlib.pinn_functions import *
 from pinnlib.training_pinn import train_model
 
-lambda_phys = 1
-lambda_obs = 10
-lambda_length = 0
-lambda_omega = 0.0001
+lambda_phy = 1
+lambda_obs = 1
+lambda_smooth = 1
 
 T = 1
 N = 100
@@ -31,10 +30,9 @@ model = train_model(
     T=T,
     BC=[0, 0, 1, 0],
     obs=obs_circ,
-    lambda_phys=lambda_phys,
+    lambda_phy=lambda_phy,
     lambda_obs=lambda_obs,
-    lambda_length=lambda_length,
-    lambda_omega=lambda_omega,
+    lambda_smooth=lambda_smooth,
     epochs=2000,
     N=200
 )
@@ -58,6 +56,7 @@ plt.scatter([x0, xT], [y0, yT])
 plt.title("PINN unicycle path w/ hard x,y BCs)")
 plt.xlabel("x"); plt.ylabel("y"); plt.axis("equal")
 
+# Get current axes
 ax = plt.gca()
 
 # Defining the obstacles visualizations in the plot.
