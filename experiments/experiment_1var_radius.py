@@ -141,3 +141,93 @@ fig2.savefig(os.path.join(output_folder, "trajectories_radius_sweep.png"), dpi=3
 plt.close(fig2)
 
 print("Experiment 1 finished.")
+
+
+# Plot 3: trajectories (left) and curvature (right), one row per radius
+fig2, axes = plt.subplots(
+    len(scenarios), 2,
+    figsize=(7, 3.2 * len(scenarios)),
+    gridspec_kw={"width_ratios": [1.35, 0.9]}
+)
+
+if len(scenarios) == 1:
+    axes = np.array([axes])
+
+# Gemensamma axelgränser för trajektorierna
+all_x = np.concatenate([s["x"] for s in scenarios] + [
+    np.array([s["x_c"] - s["r"], s["x_c"] + s["r"]]) for s in scenarios
+])
+all_y = np.concatenate([s["y"] for s in scenarios] + [
+    np.array([s["y_c"] - s["r"], s["y_c"] + s["r"]]) for s in scenarios
+])
+
+pad = 0.08
+xlim = (all_x.min() - pad, all_x.max() + pad)
+ylim = (all_y.min() - pad, all_y.max() + pad)
+
+# Gemensamma gränser för krökning
+all_kappa = np.concatenate([s["kappa"] for s in scenarios])
+kappa_min = np.min(all_kappa)
+kappa_max = np.max(all_kappa)
+
+for i, s in enumerate(scenarios):
+    axL = axes[i, 0]
+    axR = axes[i, 1]
+
+    # vänster: trajektori
+    axL.plot(s["x"], s["y"], linewidth=1.5)
+
+    circle_fill = patches.Circle((x_c, y_c), s["r"], fill=True, alpha=0.15)
+    circle_edge = patches.Circle((x_c, y_c), s["r"], fill=False, linewidth=1.2)
+    axL.add_patch(circle_fill)
+    axL.add_patch(circle_edge)
+
+    axL.plot(x_c, y_c, "x", markersize=5)
+    axL.plot(BC[0], BC[1], "o", markersize=3)
+    axL.plot(BC[2], BC[3], "o", markersize=3)
+
+    axL.set_xlim(*xlim)
+    axL.set_ylim(*ylim)
+    axL.set_aspect("equal", adjustable="box")
+    axL.grid(True)
+    axL.set_ylabel("y", fontsize=8)
+    axL.tick_params(labelsize=7)
+    axL.set_title(f"r={s['r']:.2f}\nκmax={s['kappa_max']:.2f}", fontsize=8)
+
+    axL.text(
+        0.03, 0.05,
+        f"c=({x_c:.2f},{y_c:.2f})\nr={s['r']:.2f}",
+        transform=axL.transAxes,
+        fontsize=6,
+        bbox=dict(facecolor="white", alpha=0.8, edgecolor="none", pad=1.5)
+    )
+
+    # höger: krökning
+    axR.plot(s["t"], s["kappa"], linewidth=1.5)
+    idx = np.argmax(np.abs(s["kappa"]))
+    axR.plot(s["t"][idx], s["kappa"][idx], "o", markersize=3)
+
+    axR.set_xlim(0.0, 1.0)
+    axR.set_ylim(kappa_min - 0.05, kappa_max + 0.05)
+    axR.grid(True)
+    axR.set_ylabel(r"$\kappa(t)$", fontsize=8)
+    axR.tick_params(labelsize=7)
+
+    if i == len(scenarios) - 1:
+        axL.set_xlabel("x", fontsize=8)
+        axR.set_xlabel("t", fontsize=8)
+
+fig2.suptitle(
+    rf"Trajectories (left) and curvature over time (right) "
+    rf"(fixed center at ({x_c:.2f}, {y_c:.2f}))",
+    fontsize=10,
+    fontweight="bold"
+)
+
+fig2.tight_layout(rect=[0, 0, 1, 0.98])
+fig2.savefig(
+    os.path.join(output_folder, "trajectories_and_curvature_radius.png"),
+    dpi=300,
+    bbox_inches="tight"
+)
+plt.close(fig2)
