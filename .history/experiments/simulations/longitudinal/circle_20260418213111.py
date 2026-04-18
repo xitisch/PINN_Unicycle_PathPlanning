@@ -107,7 +107,7 @@ for x_c in x_positions:
 
 
 # Plot 1: curvature vs x_c
-output_folder = os.path.join("results", "longitudinal", "circle")
+output_folder = os.path.join("src", "results", "longitudinal", "circle")
 os.makedirs(output_folder, exist_ok=True)
 
 xs = np.array([s["x_c"] for s in scenarios], dtype=float)

@@ -6,8 +6,15 @@ import os
 from src.pinn.pinn_functions import *
 from src.pinn.training_pinn import train_model
 
-output_folder = os.path.join("results", "el_verification_circle")
+# =========================
+# OUTPUT FOLDER
+# =========================
+output_folder = "figures/el_verification_circle"
 os.makedirs(output_folder, exist_ok=True)
+
+# ============================================================
+# Helper functions
+# ============================================================
 
 def compute_obstacle_terms(x, y, obs, buffer=0.01, beta=80):
     """

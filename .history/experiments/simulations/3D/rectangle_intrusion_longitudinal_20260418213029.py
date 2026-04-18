@@ -118,7 +118,7 @@ for i, Delta in enumerate(Delta_values):
 
 
 # Plot 1: curvature vs x_c
-output_folder = os.path.join("results", "3D", "rectangle")
+output_folder = os.path.join("src", "results", "3D", "rectangle")
 os.makedirs(output_folder, exist_ok=True)
 
 from mpl_toolkits.mplot3d import Axes3D

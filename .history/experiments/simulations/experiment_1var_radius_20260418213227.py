@@ -30,7 +30,7 @@ device = "cpu"
 t_list = torch.linspace(0.0, T, N, device=device).view(-1, 1)
 t_list.requires_grad_(True)
 
-output_folder = os.path.join("results", "radius", "circle")
+output_folder = os.path.join("src", "results", "radius", "circle")
 os.makedirs(output_folder, exist_ok=True)
 
 def compute_curvature(model, t_list, T, BC):
