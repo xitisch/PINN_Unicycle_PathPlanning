@@ -111,7 +111,7 @@ def train_model(
         )
 
         if epoch % 50 == 0:
-            plot_trajectory_live(model, t_list, T, BC, obs, epoch)
+            plot_trajectory_live(model, t_list, T, BC, obs)
 
         if epoch % 500 == 0:
             print(f"Epoch {epoch}/{epochs}")

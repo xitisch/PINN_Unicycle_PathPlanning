@@ -1,7 +1,7 @@
 from src.pinn.pinn_functions import *
 import matplotlib.pyplot as plt
 
-def plot_trajectory_live(model, t_list, T, BC, obs, epoch):
+def plot_trajectory_live(model, t_list, T, BC, obs):
     plt.cla()
 
     # Forward pass
@@ -43,15 +43,14 @@ def plot_trajectory_live(model, t_list, T, BC, obs, epoch):
     plt.scatter(BC[2], BC[3], s=50)
 
     # Format
-    plt.xlim(0-0.08, 1+0.08)
+    plt.xlim(0, 1)
     plt.ylim(-0.4, 0.4)
     plt.xlabel("x")
     plt.ylabel("y")
     plt.grid(True, alpha=0.3)
     plt.gca().set_aspect("equal")
 
-    plt.title(f"Epoch {epoch}")
-    plt.pause(0.001)
+    plt.pause(0.01)
 
 def train_model(
     T,
@@ -111,7 +110,7 @@ def train_model(
         )
 
         if epoch % 50 == 0:
-            plot_trajectory_live(model, t_list, T, BC, obs, epoch)
+    plot_trajectory_live(model, t_list, T, BC, obs)
 
         if epoch % 500 == 0:
             print(f"Epoch {epoch}/{epochs}")
@@ -121,7 +120,5 @@ def train_model(
             print("L_smooth:", lambda_smooth * L_smooth_norm.item())
         loss.backward()
         optimizer.step()
-    plt.ioff()
-    plt.close(fig)
 
     return model

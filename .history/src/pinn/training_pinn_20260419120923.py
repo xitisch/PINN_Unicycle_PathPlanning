@@ -1,7 +1,7 @@
 from src.pinn.pinn_functions import *
 import matplotlib.pyplot as plt
 
-def plot_trajectory_live(model, t_list, T, BC, obs, epoch):
+def plot_trajectory_live(model, t_list, T, BC, obs):
     plt.cla()
 
     # Forward pass
@@ -50,7 +50,6 @@ def plot_trajectory_live(model, t_list, T, BC, obs, epoch):
     plt.grid(True, alpha=0.3)
     plt.gca().set_aspect("equal")
 
-    plt.title(f"Epoch {epoch}")
     plt.pause(0.001)
 
 def train_model(
@@ -111,7 +110,8 @@ def train_model(
         )
 
         if epoch % 50 == 0:
-            plot_trajectory_live(model, t_list, T, BC, obs, epoch)
+            plt.title(f"Epoch {epoch}")
+            plot_trajectory_live(model, t_list, T, BC, obs)
 
         if epoch % 500 == 0:
             print(f"Epoch {epoch}/{epochs}")
