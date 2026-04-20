@@ -138,7 +138,7 @@ def train_model(
             + lambda_smooth * L_smooth_norm
         )
 
-        if epoch % 100 == 0:
+        if epoch % 50 == 0:
             plot_trajectory_live(model, t_list, T, BC, obs, epoch)
 
         if epoch % 500 == 0:
