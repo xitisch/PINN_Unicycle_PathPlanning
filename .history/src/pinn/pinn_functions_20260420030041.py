@@ -81,8 +81,8 @@ def hard_bc_transform(t, nn_data, T, BC):
     y_nn_term = (t**2) * (T - t) * y_nn
 
     # Final positions
-    """x = x_lin + x_quad + x_nn_term
-    y = y_lin + y_quad + y_nn_term"""
+    x = x_lin + x_quad + x_nn_term
+    y = y_lin + y_quad + y_nn_term
 
     x = (1 - t) * x0 + t * xT + t * (1 - t) * x_nn
     y = (1 - t) * y0 + t * yT + t * (1 - t) * y_nn

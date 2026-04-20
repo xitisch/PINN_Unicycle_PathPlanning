@@ -81,13 +81,13 @@ def hard_bc_transform(t, nn_data, T, BC):
     y_nn_term = (t**2) * (T - t) * y_nn
 
     # Final positions
-    """x = x_lin + x_quad + x_nn_term
-    y = y_lin + y_quad + y_nn_term"""
+    x = x_lin + x_quad + x_nn_term
+    y = y_lin + y_quad + y_nn_term
 
-    x = (1 - t) * x0 + t * xT + t * (1 - t) * x_nn
-    y = (1 - t) * y0 + t * yT + t * (1 - t) * y_nn
+    """x = (1 - t) * x0 + t * xT + t * (1 - t) * x_nn
+    y = (1 - t) * y0 + t * yT + t * (1 - t) * y_nn"""
 
-    return x, y, theta_nn, v_nn, omega_nn
+    return x, y, theta, v, omega_nn
 
 def phyics_loss(model, t_list, T, BC):
     """
@@ -96,6 +96,12 @@ def phyics_loss(model, t_list, T, BC):
     """
     nn_input = model(t_list)
     x, y, theta, v, omega = hard_bc_transform(t_list, nn_input, T, BC)
+
+    x       = nn_input[:, 0:1]
+    y       = nn_input[:, 1:2]
+    theta   = nn_input[:, 2:3]
+    v       = nn_input[:, 3:4]
+    omega   = nn_input[:, 4:5]
 
     x_t = derivative(x, t_list)
     y_t = derivative(y, t_list)
@@ -116,6 +122,12 @@ def circ_obs_loss(model, t_list, obs, T, BC):
     nn_input = model(t_list)
     x, y, _, _, _ = hard_bc_transform(t_list, nn_input, T, BC)
 
+    x       = nn_input[:, 0:1]
+    y       = nn_input[:, 1:2]
+    theta   = nn_input[:, 2:3]
+    v       = nn_input[:, 3:4]
+    omega   = nn_input[:, 4:5]
+
     x_c = obs[0]
     y_c = obs[1]
     r = obs[2]
@@ -134,6 +146,11 @@ def rect_obs_loss(model, t_list, obs, T, BC):
     """
     nn_input = model(t_list)
     x, y, theta, v, _ = hard_bc_transform(t_list, nn_input, T, BC)
+    x       = nn_input[:, 0:1]
+    y       = nn_input[:, 1:2]
+    theta   = nn_input[:, 2:3]
+    v       = nn_input[:, 3:4]
+    omega   = nn_input[:, 4:5]
 
     xmin = obs[0]
     xmax = obs[1]
@@ -160,6 +177,11 @@ def smooth_loss(model, t_list, T, BC):
     """
     nn_input = model(t_list)
     _, _, _, v, omega = hard_bc_transform(t_list, nn_input, T, BC)
+    x       = nn_input[:, 0:1]
+    y       = nn_input[:, 1:2]
+    theta   = nn_input[:, 2:3]
+    v       = nn_input[:, 3:4]
+    omega   = nn_input[:, 4:5]
 
     return torch.trapz((omega**2).squeeze() + 0.01 * (v**2).squeeze(), t_list.squeeze())  #
 
@@ -170,6 +192,12 @@ def v_loss(model, t_list, T, BC):
     """
     nn_input = model(t_list)
     _, _, _, v, _ = hard_bc_transform(t_list, nn_input, T, BC)
+
+    x       = nn_input[:, 0:1]
+    y       = nn_input[:, 1:2]
+    theta   = nn_input[:, 2:3]
+    v       = nn_input[:, 3:4]
+    omega   = nn_input[:, 4:5]
 
     return torch.trapz((v**2).squeeze(), t_list.squeeze())
 

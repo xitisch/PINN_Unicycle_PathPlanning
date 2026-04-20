@@ -77,9 +77,9 @@ def main():
     N = 400
     epochs = 3000
 
-    lambda_phy = 4
-    lambda_obs = 20
-    lambda_smooth = 0.2
+    lambda_phy = 8
+    lambda_obs = 4
+    lambda_smooth = 1
 
     x0, y0 = 0.0, 0.0
     xT, yT = 1.0, 0.0
@@ -297,35 +297,20 @@ def main():
     plt.close()
 
     # ============================================================
-    # Plot 3: Velocity EL (Dual Y-axis)
+    # Plot 3: Velocity EL (LHS vs RHS)
     # ============================================================
-    fig, ax1 = plt.subplots(figsize=(7, 4.5))
+    plt.figure(figsize=(7, 4.5))
+    plt.plot(t_np, lhs_v_np, label=r"LHS: $\lambda_{\mathrm{smooth}} v$")
+    plt.plot(t_np, rhs_v_np, "--", label=r"RHS: $\lambda_{\mathrm{phys}}(r_x\cos\theta + r_y\sin\theta)$")
+    plt.xlabel("t")
+    plt.ylabel("Value")
+    plt.title("Velocity EL verification")
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    set_dynamic_ylim(lhs_v_np, rhs_v_np)
 
-    # Left axis → LHS
-    color1 = "tab:blue"
-    ax1.set_xlabel("t")
-    ax1.set_ylabel(r"LHS: $\lambda_{\mathrm{smooth}} v$", color=color1)
-    ax1.plot(t_np, lhs_v_np, color=color1)
-    ax1.tick_params(axis='y', labelcolor=color1)
-    ax1.grid(True)
-
-    # Right axis → RHS
-    ax2 = ax1.twinx()
-    color2 = "tab:red"
-    ax2.set_ylabel(
-        r"RHS: $\lambda_{\mathrm{phys}}(r_x\cos\theta + r_y\sin\theta)$",
-        color=color2
-    )
-    ax2.plot(t_np, rhs_v_np, "--", color=color2)
-    ax2.tick_params(axis='y', labelcolor=color2)
-
-    # Title
-    plt.title("Velocity EL verification (Dual-axis)")
-
-    # Layout
-    fig.tight_layout()
-    plt.savefig(os.path.join(output_folder, "velocity_EL_dual_axis.png"), dpi=300)
-
+    plt.savefig(os.path.join(output_folder, "velocity_EL.png"), dpi=300)
     plt.show()
     plt.close()
 
