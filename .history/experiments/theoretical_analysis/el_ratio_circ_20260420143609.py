@@ -77,12 +77,8 @@ def main():
     N = 400
     epochs = 3000
 
-    """lambda_phy = 20
-    lambda_obs = 100
-    lambda_smooth = 1"""
-
     lambda_phy = 20
-    lambda_obs = 50
+    lambda_obs = 100
     lambda_smooth = 1
 
     x0, y0 = 0.0, 0.0

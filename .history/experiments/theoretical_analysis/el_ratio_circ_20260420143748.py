@@ -81,7 +81,7 @@ def main():
     lambda_obs = 100
     lambda_smooth = 1"""
 
-    lambda_phy = 20
+        lambda_phy = 20
     lambda_obs = 50
     lambda_smooth = 1
 

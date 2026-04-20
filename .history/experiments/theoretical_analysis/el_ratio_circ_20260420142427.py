@@ -6,7 +6,7 @@ import os
 from src.pinn.pinn_functions import *
 from src.pinn.train_pinn import train_model
 
-output_folder = os.path.join("results", "el_verification_circ")
+output_folder = os.path.join("results", "el_verification_circle_new")
 os.makedirs(output_folder, exist_ok=True)
 
 def compute_obstacle_terms(x, y, obs, buffer=0.01, beta=50):
@@ -77,13 +77,9 @@ def main():
     N = 400
     epochs = 3000
 
-    """lambda_phy = 20
-    lambda_obs = 100
-    lambda_smooth = 1"""
-
-    lambda_phy = 20
-    lambda_obs = 50
-    lambda_smooth = 1
+    lambda_phy = 4
+    lambda_obs = 20
+    lambda_smooth = 0.2
 
     x0, y0 = 0.0, 0.0
     xT, yT = 1.0, 0.0
