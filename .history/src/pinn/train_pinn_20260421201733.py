@@ -156,8 +156,6 @@ def train_model(
             print("L_phy:", lambda_phy * L_phy_norm.item())
             print("L_obs:", lambda_obs * L_obs_norm.item())
             print("L_smooth:", lambda_smooth * L_smooth_norm.item())
-            print("L_v0:", lambda_v0 * L_v0_norm.item())
-            print("L_theta0:", lambda_theta0 * L_smooth_norm.item())
         loss.backward()
         optimizer.step()
     plt.ioff()

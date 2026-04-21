@@ -100,9 +100,6 @@ def train_model(
     t_list = torch.linspace(0.0, T, N, device=device).view(-1, 1)
     t_list.requires_grad_(True)
 
-    lambda_v0=100
-    lambda_theta0=100
-
     for epoch in range(epochs):
         optimizer.zero_grad()
 
@@ -128,23 +125,18 @@ def train_model(
             scale_phy = L_phy.detach()
             scale_obs = L_obs.detach()
             scale_smooth = L_smooth.detach()
-            scale_v0 = L_v0.detach()
-            scale_theta0 = L_theta0.detach()
+
         eps = 1e-8
 
         # Normalize
         L_phy_norm = L_phy / (scale_phy + eps)
         L_obs_norm = L_obs / (scale_obs + eps)
         L_smooth_norm = L_smooth / (scale_smooth + eps)
-        L_v0_norm = L_v0 / (scale_v0 + eps)
-        L_theta0_norm = L_theta0 / (scale_theta0 + eps)
 
         loss = (
             lambda_phy * L_phy_norm
             + lambda_obs * L_obs_norm
             + lambda_smooth * L_smooth_norm
-            + lambda_v0 * L_v0_norm
-            + lambda_theta0 * L_theta0_norm
         )
 
         if epoch % 100 == 0:
@@ -156,8 +148,6 @@ def train_model(
             print("L_phy:", lambda_phy * L_phy_norm.item())
             print("L_obs:", lambda_obs * L_obs_norm.item())
             print("L_smooth:", lambda_smooth * L_smooth_norm.item())
-            print("L_v0:", lambda_v0 * L_v0_norm.item())
-            print("L_theta0:", lambda_theta0 * L_smooth_norm.item())
         loss.backward()
         optimizer.step()
     plt.ioff()
