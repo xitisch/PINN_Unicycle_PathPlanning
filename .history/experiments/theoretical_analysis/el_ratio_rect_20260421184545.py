@@ -95,7 +95,7 @@ def main():
 
     lambda_phy = 20
     lambda_obs = 50
-    lambda_smooth = 2
+    lambda_smooth = 3
 
     x0, y0 = 0.0, 0.0
     xT, yT = 1.0, 0.0

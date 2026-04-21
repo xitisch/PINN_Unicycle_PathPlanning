@@ -6,33 +6,21 @@ import os
 from src.pinn.pinn_functions import *
 from src.pinn.train_pinn import train_model
 
-output_folder = os.path.join("results", "el_verification_rect")
+output_folder = os.path.join("results", "el_verification_circ")
 os.makedirs(output_folder, exist_ok=True)
 
-def compute_obstacle_terms(x, y, obs, buffer=0.01, beta=10):
+def compute_obstacle_terms(x, y, obs, buffer=0.01, beta=50):
     """
-    Rectangle defined by:
-    obs = [xmin, xmax, ymin, ymax]
+    Computes:
+      d           : distance to obstacle center
+      violation   : soft obstacle violation
+      l_obs       : pointwise obstacle penalty = violation^2
+      dl_dx, dl_dy: partial derivatives of l_obs wrt x and y
     """
-    xmin, xmax, ymin, ymax = obs
+    x_c, y_c, r = obs
+    d = torch.sqrt((x - x_c)**2 + (y - y_c)**2 + 1e-8)
 
-    # signed distance to axis-aligned rectangle
-    x_c = 0.5 * (xmin + xmax)
-    y_c = 0.5 * (ymin + ymax)
-    hx = 0.5 * (xmax - xmin)
-    hy = 0.5 * (ymax - ymin)
-
-    qx = torch.abs(x - x_c) - hx
-    qy = torch.abs(y - y_c) - hy
-
-    ox = torch.clamp(qx, min=0)
-    oy = torch.clamp(qy, min=0)
-    outside = torch.sqrt(ox**2 + oy**2 + 1e-8)
-
-    inside = torch.clamp(torch.maximum(qx, qy), max=0)
-    d = outside + inside
-
-    violation = torch.nn.functional.softplus((-d + buffer), beta=beta)
+    violation = torch.nn.functional.softplus((r - d + buffer), beta=beta)
     l_obs = violation**2
 
     dl_dx = derivative(l_obs, x)
@@ -90,12 +78,12 @@ def main():
     epochs = 3000
 
     """lambda_phy = 20
-    lambda_obs = 5
+    lambda_obs = 100
     lambda_smooth = 1"""
 
     lambda_phy = 20
     lambda_obs = 50
-    lambda_smooth = 2
+    lambda_smooth = 1.5
 
     x0, y0 = 0.0, 0.0
     xT, yT = 1.0, 0.0
@@ -104,20 +92,12 @@ def main():
     BC = [x0,y0,xT,yT,v0,theta0]
 
 
-    
-    # Rectangle (center, width, height)
+    # Circle obstacle
+    r = 0.2
     Delta = 0.1
-    w = float(0.2 * np.sqrt(2))
-    h = float(0.2 * np.sqrt(2))
     x_c = 0.4
-    y_c = h/2 - Delta
-
-    xmin = x_c - w/2
-    xmax = x_c + w/2
-    ymin = y_c - h/2
-    ymax = y_c + h/2
-
-    obs = [[xmin, xmax, ymin, ymax]]
+    y_c = r - Delta
+    obs = [[x_c, y_c, r]]
 
     # -------------------------
     # Train model
@@ -215,7 +195,7 @@ def main():
     # -------------------------
     # Print some summary info
     # -------------------------
-    print(f"Obstacle: center=({x_c:.3f}, {y_c:.3f}), w={w:.3f}, h={h:.3f}, Delta={Delta:.3f}")
+    print(f"Obstacle: center=({x_c:.3f}, {y_c:.3f}), r={r:.3f}, Delta={Delta:.3f}")
     print(f"lambda_obs / (2 lambda_phy) = {lambda_obs / (2.0 * lambda_phy):.6f}")
     print(f"lambda_smooth / lambda_phy  = {lambda_smooth / lambda_phy:.6f}")
 
@@ -230,15 +210,9 @@ def main():
     # Reference line (dashed, lighter)
     plt.plot([BC[0], BC[2]], [BC[1], BC[3]], linestyle="--", alpha=0.5)
 
-    # Rectangle obstacle (filled + edge)
-    rect = plt.Rectangle(
-        (x_c - w/2, y_c - h/2),
-        w, h,
-        edgecolor="black",
-        facecolor="#c6d6e3",
-        linewidth=2
-    )
-    plt.gca().add_patch(rect)
+    # Circle obstacle (filled + edge)
+    circle = plt.Circle((x_c, y_c), r, edgecolor="black", facecolor="#c6d6e3", linewidth=2)
+    plt.gca().add_patch(circle)
 
     # Obstacle center
     plt.scatter(x_c, y_c, marker="x", s=60)
@@ -250,7 +224,7 @@ def main():
     # Text annotation
     plt.text(
         0.05, -0.28,
-        f"c=({x_c:.2f},{y_c:.2f})\nw={w:.2f}, h={h:.2f}",
+        f"c=({x_c:.2f},{y_c:.2f})\nr={r:.2f}",
         fontsize=11
     )
 
