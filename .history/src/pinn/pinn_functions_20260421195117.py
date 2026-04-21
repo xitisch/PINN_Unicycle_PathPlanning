@@ -170,25 +170,8 @@ def v_loss(model, t_list, T, BC):
     """
     nn_input = model(t_list)
     _, _, _, v, _ = hard_bc_transform(t_list, nn_input, T, BC)
-
+    
     return torch.trapz((v**2).squeeze(), t_list.squeeze())
-
-def initial_condition_loss(model, T, BC):
-    """
-    Soft constraint on initial velocity and angle at t = 0
-    """
-    t0 = torch.tensor([[0.0]], dtype=torch.float32, device=device, requires_grad=True)
-
-    nn_input = model(t0)
-    _, _, theta, v, _ = hard_bc_transform(t0, nn_input, T, BC)
-
-    v0_target = BC[4]
-    theta0_target = BC[5]
-
-    L_v0 = (v - v0_target).pow(2).mean()
-    L_theta0 = (theta - theta0_target).pow(2).mean()
-
-    return L_v0, L_theta0
 
 def lse_max(x, y, k=5):
     sum_stack = torch.stack((k*x, k*y), dim=0)
