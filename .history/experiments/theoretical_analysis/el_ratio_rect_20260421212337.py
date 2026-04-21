@@ -9,7 +9,7 @@ from src.pinn.train_pinn import train_model
 output_folder = os.path.join("results", "el_verification_rect")
 os.makedirs(output_folder, exist_ok=True)
 
-def compute_obstacle_terms(x, y, obs, buffer=0.01, beta=40):
+def compute_obstacle_terms(x, y, obs, buffer=0.01, beta=10):
     """
     Rectangle defined by:
     obs = [xmin, xmax, ymin, ymax]
@@ -88,6 +88,10 @@ def main():
     T = 1.0
     N = 400
     epochs = 3000
+
+    """lambda_phy = 20
+    lambda_obs = 5
+    lambda_smooth = 1"""
 
     lambda_phy = 20
     lambda_obs = 50
