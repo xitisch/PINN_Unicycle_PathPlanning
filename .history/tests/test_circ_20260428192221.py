@@ -10,7 +10,6 @@ lambda_phy = 20
 lambda_obs = 50
 lambda_v = 0.2
 lambda_omega = 2
-
 T = 1
 N = 400
 epochs = 3000
@@ -40,7 +39,6 @@ model = train_model(
     lambda_phy=lambda_phy,
     lambda_obs=lambda_obs,
     lambda_v=lambda_v,
-    lambda_omega=lambda_omega,
     epochs=epochs,
     N=N
 )

@@ -108,7 +108,7 @@ for i, Delta in enumerate(Delta_values):
             lambda_phy=lambda_phy,
             lambda_obs=lambda_obs,
             lambda_v=lambda_v,
-            lambda_omega=lambda_omega,
+            lambda_v=lambda_v,
             N=N
         )
 

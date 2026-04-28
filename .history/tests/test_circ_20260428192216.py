@@ -6,10 +6,9 @@ import numpy as np
 from src.pinn.pinn_functions import *
 from src.pinn.train_pinn import train_model
 
-lambda_phy = 20
-lambda_obs = 50
-lambda_v = 0.2
-lambda_omega = 2
+lambda_phy = 8
+lambda_obs = 4
+lambda_smooth = 1
 
 T = 1
 N = 400
@@ -40,7 +39,6 @@ model = train_model(
     lambda_phy=lambda_phy,
     lambda_obs=lambda_obs,
     lambda_v=lambda_v,
-    lambda_omega=lambda_omega,
     epochs=epochs,
     N=N
 )

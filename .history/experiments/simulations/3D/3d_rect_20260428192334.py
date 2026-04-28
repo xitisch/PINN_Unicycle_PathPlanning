@@ -63,8 +63,8 @@ w = torch.sqrt(torch.tensor(2)) * r   # width (x-direction)
 h = torch.sqrt(torch.tensor(2)) * r   # height (y-direction)
 
 # Vary longitudinal obstacle position
-x_positions = np.arange(0.3, 0.7 + 1e-9, 0.04)
-Delta_values = np.arange(0.0, 0.14 + 1e-9, 0.014)
+x_positions = np.arange(0.3, 0.7 + 1e-9, 0.10)
+Delta_values = np.arange(-0.01, 0.1 + 1e-9, 0.05)
 
 # Grids
 t_list = torch.linspace(0.0, T, N, device=device).view(-1, 1)
@@ -107,8 +107,7 @@ for i, Delta in enumerate(Delta_values):
             epochs=epochs,
             lambda_phy=lambda_phy,
             lambda_obs=lambda_obs,
-            lambda_v=lambda_v,
-            lambda_omega=lambda_omega,
+            lambda_smooth=lambda_smooth,
             N=N
         )
 

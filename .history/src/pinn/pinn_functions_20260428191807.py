@@ -57,9 +57,35 @@ def hard_bc_transform(t, nn_data, T, BC):
     y0 = BC[1]
     xT = BC[2]
     yT = BC[3]
+    v0 = BC[4]
+    theta0 = BC[5]
 
-    x = (T - t) * x0 + t * xT + t * (T - t) * x_nn
-    y = (T - t) * y0 + t * yT + t * (T - t) * y_nn
+    v_free = 5 * torch.tanh(v_nn)
+    alpha = 5.0
+    exp_term = torch.exp(-alpha * t)
+    v = v0 + t * v_free
+
+    theta_free = 5*torch.tanh(omega_nn)
+    theta = theta0 + t * theta_free
+
+
+    # Linear + quadratic terms
+    x_lin = x0 + (v0 * torch.cos(torch.tensor(theta0))) * t
+    y_lin = y0 + (v0 * torch.sin(torch.tensor(theta0))) * t
+
+    x_quad = ((xT - x0 - v0 * torch.cos(torch.tensor(theta0)) * T) / (T**2)) * (t**2)
+    y_quad = ((yT - y0 - v0 * torch.sin(torch.tensor(theta0)) * T) / (T**2)) * (t**2)
+
+    # Neural network correction (IMPORTANT: t^2 term!)
+    x_nn_term = (t**2) * (T - t) * x_nn
+    y_nn_term = (t**2) * (T - t) * y_nn
+
+    # Final positions
+    """x = x_lin + x_quad + x_nn_term
+    y = y_lin + y_quad + y_nn_term"""
+
+    x = (1 - t) * x0 + t * xT + t * (1 - t) * x_nn
+    y = (1 - t) * y0 + t * yT + t * (1 - t) * y_nn
 
     return x, y, theta_nn, v_nn, omega_nn
 
@@ -88,19 +114,17 @@ def circ_obs_loss(model, t_list, obs, T, BC):
     Ouptut: loss function value of current position. 
     """
     nn_input = model(t_list)
-    x, y, theta, v, _ = hard_bc_transform(t_list, nn_input, T, BC)
+    x, y, _, _, _ = hard_bc_transform(t_list, nn_input, T, BC)
 
     x_c = obs[0]
     y_c = obs[1]
     r = obs[2]
-
-    safety = 0.03        # Buffer zone
-
     d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
 
+    buffer = 0.03        # Buffer zone
+
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    d_sdf = d - r  # this is phi(x,y) for circle, matching eq.\eqref{eq:circsdf}
-    violation = F.softplus((safety - d_sdf), beta=40)
+    violation = F.softplus((r-d+buffer), beta=40)
     return torch.trapz((violation**2).squeeze(), t_list.squeeze())
 
 def rect_obs_loss(model, t_list, obs, T, BC):
@@ -117,17 +141,16 @@ def rect_obs_loss(model, t_list, obs, T, BC):
     ymax = obs[3]
 
     # Look-Ahead method
-    T_L = 0.1
+    T_L = 0
     x_L = x + v * T_L * torch.cos(theta)
     y_L = y + v * T_L * torch.sin(theta)
 
     d_sdf = rect_sdf(x_L, y_L, xmin, xmax, ymin, ymax)
 
-    safety = 0.03        # Buffer zone
+    buffer = 0.03        # Buffer zone
 
-    # Obstacle avoidance loss
-    violation = F.softplus((safety - d_sdf), beta=40)
-    return torch.trapz((violation**2).squeeze(), t_list.squeeze())
+    # Obstacle avoidance loss (positive within a certain range of the obstacle center)
+    violation = F.softplus((buffer-d_sdf), beta=40)
     return torch.trapz((violation**2).squeeze(), t_list.squeeze())
 
 def smooth_loss(model, t_list, T, BC):

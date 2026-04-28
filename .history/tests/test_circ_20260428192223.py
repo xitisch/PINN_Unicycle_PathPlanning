@@ -40,7 +40,6 @@ model = train_model(
     lambda_phy=lambda_phy,
     lambda_obs=lambda_obs,
     lambda_v=lambda_v,
-    lambda_omega=lambda_omega,
     epochs=epochs,
     N=N
 )
