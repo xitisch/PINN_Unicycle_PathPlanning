@@ -121,10 +121,11 @@ def circ_obs_loss(model, t_list, obs, T, BC):
     r = obs[2]
     d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
 
-    buffer = 0.03        # Buffer zone
+    safety = 0.03        # Buffer zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = F.softplus((r-d+buffer), beta=40)
+    d_sdf = d - r  # this is phi(x,y) for circle, matching eq.\eqref{eq:circsdf}
+    violation = F.softplus((safety - d_sdf), beta=40)
     return torch.trapz((violation**2).squeeze(), t_list.squeeze())
 
 def rect_obs_loss(model, t_list, obs, T, BC):
@@ -147,10 +148,11 @@ def rect_obs_loss(model, t_list, obs, T, BC):
 
     d_sdf = rect_sdf(x_L, y_L, xmin, xmax, ymin, ymax)
 
-    buffer = 0.03        # Buffer zone
+    safety = 0.03        # Buffer zone
 
-    # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    violation = F.softplus((buffer-d_sdf), beta=40)
+    # Obstacle avoidance loss
+    violation = F.softplus((safety - d_sdf), beta=40)
+    return torch.trapz((violation**2).squeeze(), t_list.squeeze())
     return torch.trapz((violation**2).squeeze(), t_list.squeeze())
 
 def smooth_loss(model, t_list, T, BC):
