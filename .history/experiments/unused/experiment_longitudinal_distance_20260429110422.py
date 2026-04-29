@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import os
 from src.pinn.pinn_functions import *
-from src.pinn.train_pinn import train_model
+from pinn.train_pinn import train_model
 
 def compute_curvature(model, t_list, T, BC):
     nn_input = model(t_list)

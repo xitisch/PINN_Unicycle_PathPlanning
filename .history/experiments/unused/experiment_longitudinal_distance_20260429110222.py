@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import os
 from src.pinn.pinn_functions import *
-from src.pinn.train_pinn import train_model
+from pinn.train_pinn import train_model
 
 def compute_curvature(model, t_list, T, BC):
     nn_input = model(t_list)
@@ -74,7 +74,6 @@ for r in radii:
             epochs=epochs,
             lambda_phy=lambda_phy,
             lambda_obs=lambda_obs,
-            lambda_v=lambda_v,
             lambda_omega=lambda_omega,
             N=N
         )
@@ -88,7 +87,7 @@ for r in radii:
             "kappa_max": kappa_max, "x": x_np, "y": y_np
         })
 
-output_folder = os.path.join("results", "longitudinal", "circle")
+output_folder = "src", "results"
 os.makedirs(output_folder, exist_ok=True)
 
 heatmap = np.zeros((len(radii), len(x_positions)))

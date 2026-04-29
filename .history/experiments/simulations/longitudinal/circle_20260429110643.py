@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 from src.pinn.pinn_functions import *
-from src.pinn.train_pinn import train_model
+from pinn.train_pinn import train_model
 
 
 def compute_curvature(model, t_list, T, BC):
@@ -43,13 +43,12 @@ def get_trajectory(model, t_list, T, BC):
 
 # Experiment setup
 T = 1.0
-N = 400
-epochs = 3000
+N = 2
+00
 
-lambda_phy = 20
-lambda_obs = 50
-lambda_v = 0.2
-lambda_omega = 2
+lambda_phy = 1
+lambda_obs = 1
+lambda_smooth = 1
 
 x0, y0 = 0.0, 0.0
 xT, yT = 1.0, 0.0
@@ -91,8 +90,7 @@ for x_c in x_positions:
         epochs=epochs,
         lambda_phy=lambda_phy,
         lambda_obs=lambda_obs,
-        lambda_v=lambda_v,
-        lambda_omega=lambda_omega,
+        lambda_smooth=lambda_smooth,
         N=N
     )
 

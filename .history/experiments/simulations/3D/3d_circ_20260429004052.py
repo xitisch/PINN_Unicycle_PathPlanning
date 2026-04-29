@@ -80,6 +80,7 @@ t_list.requires_grad_(True)
 
 
 # Run experiments
+scenarios = []   # store trajectories for plotting
 
 print(f"Fixed radius r = {r_fixed:.2f}")
 print(f"x_c range: [{x_positions.min():.2f}, {x_positions.max():.2f}], step = {x_positions[1]-x_positions[0]:.2f}")

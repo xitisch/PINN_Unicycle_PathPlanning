@@ -5,21 +5,27 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 from src.pinn.pinn_functions import *
-from pinn.train_pinn import train_model
+from src.pinn.train_pinn import train_model
 
 
 # Setup
 T = 1.0
-N = 100
+N = 400
+epochs = 3000
 
-lambda_phy = 1
-lambda_obs = 10
-lambda_omega = 0.0001
+lambda_phy = 20
+lambda_obs = 50
+lambda_v = 0.2
+lambda_omega = 2
 
-BC = [0, 0, 1, 0]
+x0, y0 = 0.0, 0.0
+xT, yT = 1.0, 0.0
+v0 = 2
+theta0 = 0
+BC = [x0,y0,xT,yT,v0,theta0]
 
 # Fixed obstacle center
-x_c = 0.40
+x_c = 0.50
 y_c = 0.10
 
 # Sweep radii

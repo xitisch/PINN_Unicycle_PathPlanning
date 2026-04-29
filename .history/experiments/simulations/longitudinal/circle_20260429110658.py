@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 from src.pinn.pinn_functions import *
-from src.pinn.train_pinn import train_model
+from pinn.train_pinn import train_model
 
 
 def compute_curvature(model, t_list, T, BC):
@@ -91,8 +91,7 @@ for x_c in x_positions:
         epochs=epochs,
         lambda_phy=lambda_phy,
         lambda_obs=lambda_obs,
-        lambda_v=lambda_v,
-        lambda_omega=lambda_omega,
+        lambda_smooth=lambda_smooth,
         N=N
     )
 

@@ -9,14 +9,10 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from matplotlib import cm
-from matplotlib.colors import LightSource
 
 from src.pinn.pinn_functions import *
 from src.pinn.train_pinn import train_model
 
-output_folder = os.path.join("results", "3D", "circle")
-os.makedirs(output_folder, exist_ok=True)
 
 def compute_curvature(model, t_list, T, BC):
     nn_input = model(t_list)
@@ -61,18 +57,14 @@ v0 = 2
 theta0 = 0
 BC = [x0,y0,xT,yT,v0,theta0]
 
-# Fixed radius
-r_fixed = 0.20
-
-Delta = 0.10
-y_c = r_fixed - Delta
-if y_c < 0:
-    raise ValueError(f"Delta={Delta} too large for r_fixed={r_fixed}: y_c would be negative.")
+# Rectangle dimensions
+r = torch.tensor(0.2)
+w = torch.sqrt(torch.tensor(2)) * r   # width (x-direction)
+h = torch.sqrt(torch.tensor(2)) * r   # height (y-direction)
 
 # Vary longitudinal obstacle position
 x_positions = np.arange(0.3, 0.7 + 1e-9, 0.04)
-Delta_values = np.arange(0.0, 0.2 + 1e-9, 0.02)
-
+Delta_values = np.arange(0.0, 0.14 + 1e-9, 0.014)
 
 # Grids
 t_list = torch.linspace(0.0, T, N, device=device).view(-1, 1)
@@ -80,29 +72,33 @@ t_list.requires_grad_(True)
 
 
 # Run experiments
+scenarios = []   # store trajectories for plotting
 
-print(f"Fixed radius r = {r_fixed:.2f}")
+print(f"Rectangle size: w = {w:.2f}, h = {h:.2f}")
 print(f"x_c range: [{x_positions.min():.2f}, {x_positions.max():.2f}], step = {x_positions[1]-x_positions[0]:.2f}")
 print(f"Delta range: [{Delta_values.min():.2f}, {Delta_values.max():.2f}], step = {Delta_values[1]-Delta_values[0]:.2f}")
 
 K = np.zeros((len(Delta_values), len(x_positions)))
 
+total = len(Delta_values) * len(x_positions)
 for i, Delta in enumerate(Delta_values):
-    y_c = r_fixed - Delta
 
-    if y_c < 0:
-        K[i, :] = np.nan
-        continue
+    # Define rectangle vertical bounds from intrusion
+    y_c = h/2 - Delta
+    ymin = y_c - h/2
+    ymax = y_c + h/2
 
-    print(f"\n=== Delta = {Delta:.3f} → y_c = {y_c:.3f} ===")
+    print(f"\n=== Delta = {Delta:.3f} → ymax = {ymax:.3f} ===")
 
     for j, x_c in enumerate(x_positions):
-        total = len(Delta_values) * len(x_positions)
         counter = i * len(x_positions) + j + 1
 
         print(f"  [{counter}/{total}] Training: x_c = {x_c:.3f}")
 
-        obs = [[x_c, y_c, r_fixed]]
+        xmin = x_c - w/2
+        xmax = x_c + w/2
+
+        obs = [[xmin, xmax, ymin, ymax]]
 
         model = train_model(
             T=T,
@@ -124,6 +120,8 @@ for i, Delta in enumerate(Delta_values):
 
 
 # Plot 1: curvature vs x_c
+output_folder = os.path.join("results", "3D", "rectangle")
+os.makedirs(output_folder, exist_ok=True)
 
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -132,28 +130,12 @@ X, Y = np.meshgrid(x_positions, Delta_values)
 fig = plt.figure(figsize=(8, 6))
 ax = fig.add_subplot(111, projection='3d')
 
-norm = plt.Normalize(np.nanmin(K), np.nanmax(K))
-
-ls = LightSource(azdeg=315, altdeg=45)
-rgb = ls.shade(K, cmap=cm.viridis, vert_exag=0.1, blend_mode='soft')
-
-surf = ax.plot_surface(
-    X, Y, K,
-    facecolors=rgb,
-    linewidth=0,
-    antialiased=True,
-    alpha=0.9
-)
+surf = ax.plot_surface(X, Y, K, cmap='viridis')
 
 ax.set_xlabel(r"$x_c$")
 ax.set_ylabel(r"$\Delta$")
 ax.set_zlabel(r"$\kappa_{\max}$")
 ax.set_title("3D surface of curvature")
-
-ax.grid(False)
-ax.xaxis.pane.fill = False
-ax.yaxis.pane.fill = False
-ax.zaxis.pane.fill = False
 
 cbar = fig.colorbar(surf, shrink=0.5, aspect=10)
 cbar.set_label(r"$\kappa_{\max}$")
