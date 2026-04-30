@@ -116,7 +116,6 @@ def rect_obs_loss(model, t_list, obs, T, BC):
     ymin = obs[2]
     ymax = obs[3]
 
-
     # Look-Ahead method
     T_L = 0.1
     x_L = x + v * T_L * torch.cos(theta)

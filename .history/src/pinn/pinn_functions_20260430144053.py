@@ -111,11 +111,10 @@ def rect_obs_loss(model, t_list, obs, T, BC):
     nn_input = model(t_list)
     x, y, theta, v, _ = hard_bc_transform(t_list, nn_input, T, BC)
 
-    xmin = obs[0]
-    xmax = obs[1]
-    ymin = obs[2]
-    ymax = obs[3]
-
+    x_c = obs[0]
+    y_c = obs[1]
+    w = obs[2]
+    h = obs[3]
 
     # Look-Ahead method
     T_L = 0.1
