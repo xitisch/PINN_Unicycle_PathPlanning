@@ -59,9 +59,9 @@ def hard_bc_transform(t, nn_data, T, BC):
     yT = BC[3]
 
 
-    v = 5 * torch.tanh(v_nn)
+    v_free = 5 * torch.tanh(v_nn)
 
-    omega = 5*torch.tanh(omega_nn)
+    theta_free = 5*torch.tanh(omega_nn)
 
     x = (1 - t) * x0 + t * xT + t * (1 - t) * x_nn
     y = (1 - t) * y0 + t * yT + t * (1 - t) * y_nn
