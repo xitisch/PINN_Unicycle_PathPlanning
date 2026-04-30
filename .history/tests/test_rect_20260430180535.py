@@ -6,6 +6,7 @@ import numpy as np
 from src.pinn.pinn_functions import *
 from src.pinn.train_pinn import train_model
 
+
 lambda_phy = 100
 lambda_obs = 250
 lambda_v = 1
