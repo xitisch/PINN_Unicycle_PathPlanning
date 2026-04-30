@@ -6,7 +6,7 @@ import os
 from src.pinn.pinn_functions import *
 from src.pinn.train_pinn import train_model
 
-output_folder = os.path.join("results", "el_verification", "rectangle")
+output_folder = os.path.join("results", "el_verification_rect")
 os.makedirs(output_folder, exist_ok=True)
 
 def compute_obstacle_terms(x, y, obs, buffer=0.01, beta=40):

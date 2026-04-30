@@ -6,7 +6,7 @@ import os
 from src.pinn.pinn_functions import *
 from src.pinn.train_pinn import train_model
 
-output_folder = os.path.join("results", "el_verification", "circle")
+output_folder = os.path.join("results", "el_verification_circ")
 os.makedirs(output_folder, exist_ok=True)
 
 def compute_obstacle_terms(x, y, obs, buffer=0.01, beta=40):
@@ -92,7 +92,7 @@ def main():
     # Circle obstacle
     r = 0.2
     Delta = 0.2
-    x_c = 0.3
+    x_c = 0.25
     y_c = r - Delta
     obs = [[x_c, y_c, r]]
 
