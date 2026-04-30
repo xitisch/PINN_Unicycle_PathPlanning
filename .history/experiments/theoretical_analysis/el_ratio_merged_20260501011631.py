@@ -190,13 +190,13 @@ def main():
     # Obstacle definitions
     # -------------------------
     r        = 0.2
-    Delta    = 0.1
+    Delta    = 0.2
     x_c_circ = 0.3
     y_c_circ = r - Delta
     obs_circ = [x_c_circ, y_c_circ, r]
 
     w = h        = float(0.2 * np.sqrt(2))
-    Delta_rect   = 0.1 * np.sqrt(2) - 0.1
+    Delta_rect   = 0.1 * np.sqrt(2)
     x_c_rect     = 0.3
     y_c_rect     = h/2 - Delta_rect
     xmin = x_c_rect - w/2

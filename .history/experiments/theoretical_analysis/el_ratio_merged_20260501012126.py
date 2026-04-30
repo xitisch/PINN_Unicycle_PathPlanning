@@ -196,7 +196,7 @@ def main():
     obs_circ = [x_c_circ, y_c_circ, r]
 
     w = h        = float(0.2 * np.sqrt(2))
-    Delta_rect   = 0.1 * np.sqrt(2) - 0.1
+    Delta_rect   = 0.1 * np.sqrt(2) - 1
     x_c_rect     = 0.3
     y_c_rect     = h/2 - Delta_rect
     xmin = x_c_rect - w/2
