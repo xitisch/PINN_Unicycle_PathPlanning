@@ -190,13 +190,13 @@ def main():
     # Obstacle definitions
     # -------------------------
     r        = 0.2
-    Delta    = 0.2
+    Delta    = 0.1
     x_c_circ = 0.3
     y_c_circ = r - Delta
     obs_circ = [x_c_circ, y_c_circ, r]
 
     w = h        = float(0.2 * np.sqrt(2))
-    Delta_rect   = 0.1 * np.sqrt(2)
+    Delta_rect   = 0.1 * np.sqrt(2) - 0.1
     x_c_rect     = 0.3
     y_c_rect     = h/2 - Delta_rect
     xmin = x_c_rect - w/2
@@ -308,28 +308,54 @@ def main():
         ax = axes[row]
 
         # --- Column 0: Trajectory ---
-        ax[0].plot(data["x"], data["y"], linewidth=2)
+        ax[0].plot(data["x"], data["y"], linewidth=2.5, color="tab:blue")
         ax[0].plot(
             [BC[0], BC[2]], [BC[1], BC[3]],
-            linestyle="--", alpha=0.4, color="orange"
+            linestyle="--", alpha=0.5, color="orange"
         )
 
         if obs_type == "circle":
             patch = plt.Circle(
                 (obs_def[0], obs_def[1]), obs_def[2],
-                edgecolor="black", facecolor="#c6d6e3", linewidth=1.5
+                edgecolor="black", facecolor="#c6d6e3", linewidth=2
+            )
+            ax[0].add_patch(patch)
+            ax[0].scatter(
+                obs_def[0], obs_def[1],
+                marker="x", s=60, color="tab:blue"
+            )
+            ax[0].text(
+                0.02, -0.28,
+                f"c=({obs_def[0]:.2f},{obs_def[1]:.2f})\nr={obs_def[2]:.2f}",
+                fontsize=8, transform=ax[0].transData
             )
             traj_title = "Trajectory (Circle)"
+
         else:
+            x_c_r = 0.5 * (obs_def[0] + obs_def[1])
+            y_c_r = 0.5 * (obs_def[2] + obs_def[3])
+            w_r   = obs_def[1] - obs_def[0]
+            h_r   = obs_def[3] - obs_def[2]
             patch = plt.Rectangle(
-                (obs_def[0], obs_def[2]),
-                obs_def[1] - obs_def[0],
-                obs_def[3] - obs_def[2],
-                edgecolor="black", facecolor="#c6d6e3", linewidth=1.5
+                (obs_def[0], obs_def[2]), w_r, h_r,
+                edgecolor="black", facecolor="#c6d6e3", linewidth=2
+            )
+            ax[0].add_patch(patch)
+            ax[0].scatter(
+                x_c_r, y_c_r,
+                marker="x", s=60, color="tab:blue"
+            )
+            ax[0].text(
+                0.02, -0.28,
+                f"c=({x_c_r:.2f},{y_c_r:.2f})\nw={w_r:.2f}, h={h_r:.2f}",
+                fontsize=8, transform=ax[0].transData
             )
             traj_title = "Trajectory (Rectangle)"
 
-        ax[0].add_patch(patch)
+        ax[0].scatter(BC[0], BC[1], s=60, color="orange", zorder=5)
+        ax[0].scatter(BC[2], BC[3], s=60, color="green",  zorder=5)
+        ax[0].set_xlim(-0.05, 1.05)
+        ax[0].set_ylim(-0.4,  0.5)
         ax[0].set_aspect("equal")
         ax[0].set_xlabel("x")
         ax[0].set_ylabel("y")
