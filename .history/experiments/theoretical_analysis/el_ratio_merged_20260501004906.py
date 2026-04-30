@@ -1,0 +1,240 @@
+import torch
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+from src.pinn.pinn_functions import *
+from src.pinn.train_pinn import train_model
+
+output_folder = os.path.join("results", "el_verification")
+os.makedirs(output_folder, exist_ok=True)
+
+
+def compute_obstacle_terms_circ(x, y, obs, buffer=0.01, beta=40):
+    x_c, y_c, r = obs
+    d = torch.sqrt((x - x_c)**2 + (y - y_c)**2 + 1e-8)
+    violation = torch.nn.functional.softplus((r - d + buffer), beta=beta)
+    l_obs = violation**2
+    dl_dx = derivative(l_obs, x)
+    dl_dy = derivative(l_obs, y)
+    return d, violation, l_obs, dl_dx, dl_dy
+
+
+def compute_obstacle_terms_rect(x, y, obs, buffer=0.01, beta=40):
+    xmin, xmax, ymin, ymax = obs
+    x_c = 0.5 * (xmin + xmax)
+    y_c = 0.5 * (ymin + ymax)
+    hx = 0.5 * (xmax - xmin)
+    hy = 0.5 * (ymax - ymin)
+
+    qx = torch.abs(x - x_c) - hx
+    qy = torch.abs(y - y_c) - hy
+
+    # Use LSE to match pinn_functions.py
+    ox = torch.nn.functional.softplus(qx, beta=50)
+    oy = torch.nn.functional.softplus(qy, beta=50)
+    outside = torch.sqrt(ox**2 + oy**2)
+
+    inside = lse_min(lse_max(qx, qy), torch.zeros_like(qx))
+    d = outside + inside
+
+    violation = torch.nn.functional.softplus((buffer - d), beta=beta)
+    l_obs = violation**2
+    dl_dx = derivative(l_obs, x)
+    dl_dy = derivative(l_obs, y)
+    return d, violation, l_obs, dl_dx, dl_dy
+
+
+def compute_residuals_and_derivatives(model, t_list, T, BC):
+    nn_input = model(t_list)
+    x, y, theta, v, omega = hard_bc_transform(t_list, nn_input, T, BC)
+
+    x_t = derivative(x, t_list)
+    y_t = derivative(y, t_list)
+    theta_t = derivative(theta, t_list)
+
+    r_x = x_t - v * torch.cos(theta)
+    r_y = y_t - v * torch.sin(theta)
+    r_theta = theta_t - omega
+
+    r_x_t = derivative(r_x, t_list)
+    r_y_t = derivative(r_y, t_list)
+
+    return x, y, theta, v, omega, r_x, r_y, r_theta, r_x_t, r_y_t
+
+
+def to_np(tensor):
+    return tensor.detach().cpu().numpy().flatten()
+
+
+def compute_all(model, t_list, T, BC, obs, obstacle_type,
+                lambda_obs, lambda_phy, lambda_v, lambda_omega):
+    (x, y, theta, v, omega,
+     r_x, r_y, r_theta,
+     r_x_t, r_y_t) = compute_residuals_and_derivatives(model, t_list, T, BC)
+
+    if obstacle_type == "circle":
+        _, _, _, dl_dx, dl_dy = compute_obstacle_terms_circ(x, y, obs)
+    else:
+        _, _, _, dl_dx, dl_dy = compute_obstacle_terms_rect(x, y, obs)
+
+    scale = lambda_obs / (2.0 * lambda_phy)
+
+    return {
+        "x":          to_np(x),
+        "y":          to_np(y),
+        "lhs_x":      to_np(r_x_t),
+        "rhs_x":      to_np(scale * dl_dx),
+        "lhs_y":      to_np(r_y_t),
+        "rhs_y":      to_np(scale * dl_dy),
+        "lhs_v":      to_np(lambda_v * v),
+        "rhs_v":      to_np(lambda_phy * (r_x * torch.cos(theta)
+                                         + r_y * torch.sin(theta))),
+        "lhs_omega":  to_np(lambda_omega * omega),
+        "rhs_omega":  to_np(lambda_phy * r_theta),
+    }
+
+
+def main():
+    T = 1.0
+    N = 400
+    epochs = 3000
+
+    lambda_phy   = 20
+    lambda_obs   = 50
+    lambda_v     = 0.2
+    lambda_omega = 2
+
+    BC = [0.0, 0.0, 1.0, 0.0, 2, 0]
+
+    # --- Circle setup ---
+    r     = 0.2
+    Delta = 0.2
+    x_c_circ = 0.3
+    y_c_circ = r - Delta
+    obs_circ = [x_c_circ, y_c_circ, r]
+
+    # --- Rectangle setup ---
+    Delta_rect = 0.1 * np.sqrt(2)
+    w = h = float(0.2 * np.sqrt(2))
+    x_c_rect = 0.3
+    y_c_rect = h/2 - Delta_rect
+    xmin = x_c_rect - w/2
+    xmax = x_c_rect + w/2
+    ymin = y_c_rect - h/2
+    ymax = y_c_rect + h/2
+    obs_rect = [xmin, xmax, ymin, ymax]
+
+    # --- Train both models ---
+    print("Training circular model...")
+    model_circ = train_model(T=T, BC=BC, obs=[obs_circ],
+                             lambda_phy=lambda_phy, lambda_obs=lambda_obs,
+                             lambda_v=lambda_v, lambda_omega=lambda_omega,
+                             epochs=epochs, N=N)
+
+    print("Training rectangular model...")
+    model_rect = train_model(T=T, BC=BC, obs=[obs_rect],
+                             lambda_phy=lambda_phy, lambda_obs=lambda_obs,
+                             lambda_v=lambda_v, lambda_omega=lambda_omega,
+                             epochs=epochs, N=N)
+
+    # --- Evaluation grid ---
+    t_list = torch.linspace(0.0, T, N).view(-1, 1)
+    t_list.requires_grad_(True)
+    t_np = to_np(t_list)
+
+    # --- Compute all quantities ---
+    circ = compute_all(model_circ, t_list, T, BC, obs_circ, "circle",
+                       lambda_obs, lambda_phy, lambda_v, lambda_omega)
+    rect = compute_all(model_rect, t_list, T, BC, obs_rect, "rectangle",
+                       lambda_obs, lambda_phy, lambda_v, lambda_omega)
+
+    # ============================================================
+    # Combined 2x5 figure
+    # ============================================================
+    fig, axes = plt.subplots(2, 5, figsize=(22, 8))
+
+    titles_top = [
+        "Trajectory (circle)",
+        r"Spatial EL $x$ (circle)",
+        r"Spatial EL $y$ (circle)",
+        r"Angular EL (circle)",
+        r"Velocity EL (circle)",
+    ]
+    titles_bot = [
+        "Trajectory (rectangle)",
+        r"Spatial EL $x$ (rectangle)",
+        r"Spatial EL $y$ (rectangle)",
+        r"Angular EL (rectangle)",
+        r"Velocity EL (rectangle)",
+    ]
+
+    for row, (data, obs_type, obs_def, titles) in enumerate([
+        (circ, "circle",    obs_circ, titles_top),
+        (rect, "rectangle", obs_rect, titles_bot),
+    ]):
+        ax = axes[row]
+
+        # --- Column 0: Trajectory ---
+        ax[0].plot(data["x"], data["y"], linewidth=2)
+        ax[0].plot([BC[0], BC[2]], [BC[1], BC[3]],
+                   linestyle="--", alpha=0.4, color="orange")
+        if obs_type == "circle":
+            circ_patch = plt.Circle(
+                (obs_def[0], obs_def[1]), obs_def[2],
+                edgecolor="black", facecolor="#c6d6e3", linewidth=1.5)
+            ax[0].add_patch(circ_patch)
+        else:
+            rect_patch = plt.Rectangle(
+                (obs_def[0], obs_def[2]),
+                obs_def[1]-obs_def[0], obs_def[3]-obs_def[2],
+                edgecolor="black", facecolor="#c6d6e3", linewidth=1.5)
+            ax[0].add_patch(rect_patch)
+        ax[0].set_aspect("equal")
+        ax[0].set_xlabel("x")
+        ax[0].set_ylabel("y")
+        ax[0].grid(True, alpha=0.3)
+        ax[0].set_title(titles[0])
+
+        # --- Columns 1-4: dual-axis EL plots ---
+        keys = [
+            ("lhs_x",    "rhs_x",
+             r"$\dot{r}_x$",
+             r"$\frac{\lambda_{\rm obs}}{2\lambda_{\rm phys}}\frac{\partial \ell_{\rm obs}}{\partial x}$"),
+            ("lhs_y",    "rhs_y",
+             r"$\dot{r}_y$",
+             r"$\frac{\lambda_{\rm obs}}{2\lambda_{\rm phys}}\frac{\partial \ell_{\rm obs}}{\partial y}$"),
+            ("lhs_omega","rhs_omega",
+             r"$\lambda_{\omega}\,\omega$",
+             r"$\lambda_{\rm phys}\,r_\theta$"),
+            ("lhs_v",    "rhs_v",
+             r"$\lambda_v\,v$",
+             r"$\lambda_{\rm phys}(r_x\cos\theta + r_y\sin\theta)$"),
+        ]
+
+        for col, (lhs_key, rhs_key, lhs_label, rhs_label) in enumerate(keys):
+            ax1 = ax[col + 1]
+            ax2 = ax1.twinx()
+
+            ax1.plot(t_np, data[lhs_key], color="tab:blue")
+            ax2.plot(t_np, data[rhs_key], "--", color="tab:red")
+
+            ax1.set_xlabel("$t$")
+            ax1.set_ylabel(f"LHS: {lhs_label}", color="tab:blue", fontsize=8)
+            ax2.set_ylabel(f"RHS: {rhs_label}", color="tab:red",  fontsize=8)
+            ax1.tick_params(axis='y', labelcolor="tab:blue")
+            ax2.tick_params(axis='y', labelcolor="tab:red")
+            ax1.grid(True, alpha=0.3)
+            ax[col+1].set_title(titles[col+1])
+
+    fig.suptitle("Euler--Lagrange numerical evaluation: circle (top) vs rectangle (bottom)",
+                 fontsize=13)
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_folder, "EL_combined_2x5.png"), dpi=300)
+    plt.show()
+    plt.close()
+    print("Saved combined figure.")
+
+
+if __name__ == "__main__":
+    main()
