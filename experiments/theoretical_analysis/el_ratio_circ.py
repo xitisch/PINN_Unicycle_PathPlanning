@@ -6,7 +6,7 @@ import os
 from src.pinn.pinn_functions import *
 from src.pinn.train_pinn import train_model
 
-output_folder = os.path.join("results", "el_verification_circ")
+output_folder = os.path.join("results", "el_evaluation","circ")
 os.makedirs(output_folder, exist_ok=True)
 
 def compute_obstacle_terms(x, y, obs, buffer=0.01, beta=40):
@@ -254,7 +254,7 @@ def main():
     ax2.plot(t_np[mask_x], rhs_x_np[mask_x], "--", color=color2)
     ax2.tick_params(axis='y', labelcolor=color2)
 
-    plt.title("Spatial EL verification in x-direction (Dual-axis)")
+    plt.title("Spatial EL evaluation in x-direction (Dual-axis)")
     fig.tight_layout()
 
     plt.savefig(os.path.join(output_folder, "spatial_EL_x_dual_axis.png"), dpi=300)
@@ -284,7 +284,7 @@ def main():
     ax2.plot(t_np[mask_y], rhs_y_np[mask_y], "--", color=color2)
     ax2.tick_params(axis='y', labelcolor=color2)
 
-    plt.title("Spatial EL verification in y-direction (Dual-axis)")
+    plt.title("Spatial EL evaluation in y-direction (Dual-axis)")
     fig.tight_layout()
 
     plt.savefig(os.path.join(output_folder, "spatial_EL_y_dual_axis.png"), dpi=300)
@@ -315,7 +315,7 @@ def main():
     ax2.tick_params(axis='y', labelcolor=color2)
 
     # Title
-    plt.title("Velocity EL verification (Dual-axis)")
+    plt.title("Velocity EL evaluation (Dual-axis)")
 
     # Layout
     fig.tight_layout()
@@ -345,7 +345,7 @@ def main():
     ax2.tick_params(axis='y', labelcolor=color2)
 
     # Title
-    plt.title("Angular EL verification (Dual-axis)")
+    plt.title("Angular EL evaluation (Dual-axis)")
 
     # Layout
     fig.tight_layout()
