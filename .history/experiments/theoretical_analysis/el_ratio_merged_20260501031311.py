@@ -315,64 +315,6 @@ def main():
                 f"c=({obs_def[0]:.2f},{obs_def[1]:.2f})\nr={obs_def[2]:.2f}",
                 fontsize=9, transform=ax.transData
             )
-            traj_title = "Trajectory (Circle)"
-        else:
-            x_c_r = 0.5 * (obs_def[0] + obs_def[1])
-            y_c_r = 0.5 * (obs_def[2] + obs_def[3])
-            w_r   = obs_def[1] - obs_def[0]
-            h_r   = obs_def[3] - obs_def[2]
-            patch = plt.Rectangle(
-                (obs_def[0], obs_def[2]), w_r, h_r,
-                edgecolor="black", facecolor="#c6d6e3", linewidth=2
-            )
-            ax.add_patch(patch)
-            ax.scatter(x_c_r, y_c_r,
-                       marker="x", s=60, color="tab:blue")
-            ax.text(
-                0.02, -0.28,
-                f"c=({x_c_r:.2f},{y_c_r:.2f})\nw={w_r:.2f}, h={h_r:.2f}",
-                fontsize=9, transform=ax.transData
-            )
-            traj_title = "Trajectory (Rectangle)"
-
-        ax.scatter(BC[0], BC[1], s=60, color="orange", zorder=5)
-        ax.scatter(BC[2], BC[3], s=60, color="green",  zorder=5)
-        ax.set_xlim(-0.05, 1.05)
-        ax.set_ylim(-0.4,  0.5)
-        ax.set_aspect("equal")
-        ax.set_xlabel("x")
-        ax.set_ylabel("y")
-        ax.grid(True, alpha=0.3)
-        ax.set_title(traj_title, fontsize=12, pad=12)
-
-    # --- Rows 1-4: EL plots ---
-    for row_idx, (lhs_key, rhs_key,
-                  lhs_label, rhs_label, title) in enumerate(el_plots):
-        for col, (data, obs_label) in enumerate([
-            (circ, "Circle"),
-            (rect, "Rectangle"),
-        ]):
-            plot_dual_axis(
-                axes[row_idx + 1, col], t_np,
-                data[lhs_key], data[rhs_key],
-                lhs_label, rhs_label,
-                f"{title} ({obs_label})"
-            )
-
-    fig.suptitle(
-        "Euler--Lagrange Numerical Evaluation: "
-        "Circle (Left) vs Rectangle (Right)",
-        fontsize=16,
-        y=0.995
-    )
-    plt.tight_layout(rect=[0, 0, 1, 0.985])
-    plt.savefig(
-        os.path.join(output_folder, "EL_combined_5x2.png"),
-        dpi=300
-    )
-    plt.show()
-    plt.close()
-    print("Saved combined figure.")
 
 
 if __name__ == "__main__":

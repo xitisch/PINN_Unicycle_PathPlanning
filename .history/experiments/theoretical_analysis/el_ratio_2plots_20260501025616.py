@@ -6,7 +6,7 @@ import os
 from src.pinn.pinn_functions import *
 from src.pinn.train_pinn import train_model
 
-output_folder = os.path.join("results", "el_evaluation")
+output_folder = os.path.join("results", "el_evaluation_2plots")
 os.makedirs(output_folder, exist_ok=True)
 
 
@@ -256,45 +256,15 @@ def main():
     )
 
 # ============================================================
-    # Combined 5x2 figure
+    # Figure 1: Trajectories (1x2)
     # ============================================================
-    fig, axes = plt.subplots(5, 2, figsize=(12, 22))
+    fig1, axes1 = plt.subplots(1, 2, figsize=(10, 5))
 
-    el_plots = [
-        (
-            "lhs_x", "rhs_x",
-            r"$\dot{r}_x$",
-            r"$\frac{\lambda_{\rm obs}}{2\lambda_{\rm phys}}"
-            r"\frac{\partial \ell_{\rm obs}}{\partial x}$",
-            "Spatial EL Evaluation In X-Direction",
-        ),
-        (
-            "lhs_y", "rhs_y",
-            r"$\dot{r}_y$",
-            r"$\frac{\lambda_{\rm obs}}{2\lambda_{\rm phys}}"
-            r"\frac{\partial \ell_{\rm obs}}{\partial y}$",
-            "Spatial EL Evaluation In Y-Direction",
-        ),
-        (
-            "lhs_omega", "rhs_omega",
-            r"$\lambda_{\omega}\,\omega$",
-            r"$\lambda_{\rm phys}\,r_\theta$",
-            "Angular EL Evaluation",
-        ),
-        (
-            "lhs_v", "rhs_v",
-            r"$\lambda_v\,v$",
-            r"$\lambda_{\rm phys}(r_x\cos\theta + r_y\sin\theta)$",
-            "Velocity EL Evaluation",
-        ),
-    ]
-
-    # --- Row 0: Trajectories ---
     for col, (data, obs_type, obs_def) in enumerate([
         (circ, "circle",    obs_circ),
         (rect, "rectangle", obs_rect),
     ]):
-        ax = axes[0, col]
+        ax = axes1[col]
 
         ax.plot(data["x"], data["y"], linewidth=2.5, color="tab:blue")
         ax.plot(
@@ -343,37 +313,78 @@ def main():
         ax.set_xlabel("x")
         ax.set_ylabel("y")
         ax.grid(True, alpha=0.3)
-        ax.set_title(traj_title, fontsize=12, pad=12)
+        ax.set_title(traj_title)
 
-    # --- Rows 1-4: EL plots ---
-    for row_idx, (lhs_key, rhs_key,
-                  lhs_label, rhs_label, title) in enumerate(el_plots):
-        for col, (data, obs_label) in enumerate([
-            (circ, "Circle"),
-            (rect, "Rectangle"),
-        ]):
-            plot_dual_axis(
-                axes[row_idx + 1, col], t_np,
-                data[lhs_key], data[rhs_key],
-                lhs_label, rhs_label,
-                f"{title} ({obs_label})"
-            )
-
-    fig.suptitle(
-        "Euler--Lagrange Numerical Evaluation: "
-        "Circle (Left) vs Rectangle (Right)",
-        fontsize=16,
-        y=0.995
+    fig1.suptitle(
+        "Euler--Lagrange Numerical Evaluation: Trajectories",
+        fontsize=13
     )
-    plt.tight_layout(rect=[0, 0, 1, 0.985])
+    plt.tight_layout()
     plt.savefig(
-        os.path.join(output_folder, "EL_combined_5x2.png"),
+        os.path.join(output_folder, "EL_trajectories.png"),
         dpi=300
     )
     plt.show()
     plt.close()
-    print("Saved combined figure.")
+    print("Saved trajectory figure.")
 
+    # ============================================================
+    # Figure 2: EL plots (2x4)
+    # ============================================================
+    fig2, axes2 = plt.subplots(2, 4, figsize=(20, 8))
 
-if __name__ == "__main__":
-    main()
+    el_plots = [
+        (
+            "lhs_x", "rhs_x",
+            r"$\dot{r}_x$",
+            r"$\frac{\lambda_{\rm obs}}{2\lambda_{\rm phys}}"
+            r"\frac{\partial \ell_{\rm obs}}{\partial x}$",
+            "Spatial EL Evaluation In X-Direction",
+        ),
+        (
+            "lhs_y", "rhs_y",
+            r"$\dot{r}_y$",
+            r"$\frac{\lambda_{\rm obs}}{2\lambda_{\rm phys}}"
+            r"\frac{\partial \ell_{\rm obs}}{\partial y}$",
+            "Spatial EL Evaluation In Y-Direction",
+        ),
+        (
+            "lhs_omega", "rhs_omega",
+            r"$\lambda_{\omega}\,\omega$",
+            r"$\lambda_{\rm phys}\,r_\theta$",
+            "Angular EL Evaluation",
+        ),
+        (
+            "lhs_v", "rhs_v",
+            r"$\lambda_v\,v$",
+            r"$\lambda_{\rm phys}(r_x\cos\theta + r_y\sin\theta)$",
+            "Velocity EL Evaluation",
+        ),
+    ]
+
+    for row, data in enumerate([circ, rect]):
+        ax = axes2[row]
+        row_label = "Circle" if row == 0 else "Rectangle"
+
+        for col, (lhs_key, rhs_key,
+                  lhs_label, rhs_label, title) in enumerate(el_plots):
+            plot_dual_axis(
+                ax[col], t_np,
+                data[lhs_key], data[rhs_key],
+                lhs_label, rhs_label,
+                f"{title} ({row_label})"
+            )
+
+    fig2.suptitle(
+        "Euler--Lagrange Numerical Evaluation: "
+        "Circle (Top) vs Rectangle (Bottom)",
+        fontsize=13
+    )
+    plt.tight_layout()
+    plt.savefig(
+        os.path.join(output_folder, "EL_evaluation.png"),
+        dpi=300
+    )
+    plt.show()
+    plt.close()
+    print("Saved EL evaluation figure.")
