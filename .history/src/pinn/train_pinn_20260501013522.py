@@ -89,8 +89,7 @@ def train_model(
     lambda_omega=1,
     epochs=2000,
     lr=0.001,
-    N=100,
-    return_scales=False
+    N=100
     ):
     
     torch.manual_seed(0)  
@@ -157,13 +156,10 @@ def train_model(
     plt.ioff()
     plt.close(fig)
 
-    if return_scales:
-        scales = {
-            "phy":   scale_phy.item(),
-            "obs":   scale_obs.item(),
-            "v":     scale_v.item(),
-            "omega": scale_omega.item()
-        }
-        return model, scales
-
-    return model
+    scales = {
+        "phy":   scale_phy.item(),
+        "obs":   scale_obs.item(),
+        "v":     scale_v.item(),
+        "omega": scale_omega.item()
+    }
+    return model, scale

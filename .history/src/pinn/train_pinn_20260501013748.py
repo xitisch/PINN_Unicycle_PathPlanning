@@ -89,7 +89,7 @@ def train_model(
     lambda_omega=1,
     epochs=2000,
     lr=0.001,
-    N=100,
+    N=100
     return_scales=False
     ):
     
@@ -167,3 +167,4 @@ def train_model(
         return model, scales
 
     return model
+    return model, scales

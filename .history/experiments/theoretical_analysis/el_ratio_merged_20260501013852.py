@@ -14,7 +14,7 @@ os.makedirs(output_folder, exist_ok=True)
 # Helper functions
 # ============================================================
 
-def compute_obstacle_terms_circ(x, y, obs, buffer=0.03, beta=40):
+def compute_obstacle_terms_circ(x, y, obs, buffer=0.01, beta=40):
     x_c, y_c, r = obs
     d = torch.sqrt((x - x_c)**2 + (y - y_c)**2 + 1e-8)
     violation = F.softplus((r - d + buffer), beta=beta)
@@ -24,7 +24,7 @@ def compute_obstacle_terms_circ(x, y, obs, buffer=0.03, beta=40):
     return d, violation, l_obs, dl_dx, dl_dy
 
 
-def compute_obstacle_terms_rect(x, y, obs, buffer=0.03, beta=40):
+def compute_obstacle_terms_rect(x, y, obs, buffer=0.01, beta=40):
     xmin, xmax, ymin, ymax = obs
     x_c = 0.5 * (xmin + xmax)
     y_c = 0.5 * (ymin + ymax)

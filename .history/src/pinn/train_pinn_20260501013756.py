@@ -89,7 +89,7 @@ def train_model(
     lambda_omega=1,
     epochs=2000,
     lr=0.001,
-    N=100,
+    N=100
     return_scales=False
     ):
     
