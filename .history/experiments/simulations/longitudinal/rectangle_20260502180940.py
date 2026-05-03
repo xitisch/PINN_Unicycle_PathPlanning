@@ -71,8 +71,8 @@ if y_c < 0:
     raise ValueError(rf"Delta={Delta} too large for $\mathrm{{fixed}}\ w={w:.2f},\ h={h:.2f}$: y_c would be negative.")
 
 # Vary longitudinal obstacle position
-x_positions = [0.25, 0.35, 0.45]
-# For presentation figure: [0.25, 0.30, 0.35, 0.40, 0.45]
+x_positions = [0.25, 0.30, 0.35, 0.40, 0.45]
+# For presentation figure: [0.25, 0.35, 0.45]
 
 
 # Grids
@@ -100,7 +100,7 @@ for x_c in x_positions:
         T=T,
         BC=BC,
         obs=obs,
-        epochs=epochs,
+        epochs=2000,
         lambda_phy=lambda_phy,
         lambda_obs=lambda_obs,
         lambda_v=lambda_v,

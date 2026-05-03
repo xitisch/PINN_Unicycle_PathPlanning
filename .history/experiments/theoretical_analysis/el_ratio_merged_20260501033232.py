@@ -367,7 +367,7 @@ def main():
     )
     plt.tight_layout(rect=[0, 0, 1, 0.985])
     plt.savefig(
-          os.path.join(output_folder, "EL_combined_5x2.png"),
+        os.path.join(output_folder, "EL_combined_5x2.png"),
         dpi=300
     )
     plt.show()

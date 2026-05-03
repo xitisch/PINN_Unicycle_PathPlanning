@@ -40,8 +40,7 @@ def get_trajectory(model, t_list, T, BC):
         x, y, _, _, _ = hard_bc_transform(t_list, nn_input, T, BC)
     return x.squeeze().cpu().numpy(), y.squeeze().cpu().numpy()
 
-output_folder = os.path.join("results", "longitudinal", "presentation_figures")
-os.makedirs(output_folder, exist_ok=True)
+
 
 # Experiment setup
 T = 1.0
@@ -71,8 +70,7 @@ if y_c < 0:
     raise ValueError(rf"Delta={Delta} too large for $\mathrm{{fixed}}\ w={w:.2f},\ h={h:.2f}$: y_c would be negative.")
 
 # Vary longitudinal obstacle position
-x_positions = [0.25, 0.35, 0.45]
-# For presentation figure: [0.25, 0.30, 0.35, 0.40, 0.45]
+x_positions = [0.25, 0.30, 0.35, 0.40, 0.45]
 
 
 # Grids
@@ -100,7 +98,7 @@ for x_c in x_positions:
         T=T,
         BC=BC,
         obs=obs,
-        epochs=epochs,
+        epochs=2000,
         lambda_phy=lambda_phy,
         lambda_obs=lambda_obs,
         lambda_v=lambda_v,
@@ -127,6 +125,9 @@ for x_c in x_positions:
 
 
 # Plot 1: curvature vs x_c
+output_folder = os.path.join("results", "longitudinal", "rectangle")
+os.makedirs(output_folder, exist_ok=True)
+
 xs = np.array([s["x_c"] for s in scenarios], dtype=float)
 ks = np.array([s["kappa_max"] for s in scenarios], dtype=float)
 
@@ -208,7 +209,7 @@ for j, x_c in enumerate(x_positions):
 
     ax.text(
         0.97, 0.97,
-        f"c=({s['x_c']:.2f},{s['y_c']:.2f})\nw={w:.2f},h={h:.2f}",
+        f"c=({s['x_c']:.2f},{s['y_c']:.2f})\nr={s['r']:.2f}",
         transform=ax.transAxes,
         fontsize=11,
         va="top",
@@ -293,7 +294,7 @@ for j, x_c in enumerate(x_positions):
 
     ax_traj.text(
         0.97, 0.97,
-        f"c=({s['x_c']:.2f},{s['y_c']:.2f})\nw={w:.2f},h={h:.2f}",
+        f"c=({s['x_c']:.2f},{s['y_c']:.2f})\nr={s['r']:.2f}",
         transform=ax_traj.transAxes,
         fontsize=11,
         va="top",
