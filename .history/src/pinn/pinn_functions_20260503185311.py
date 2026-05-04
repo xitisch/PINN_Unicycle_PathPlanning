@@ -20,7 +20,7 @@ class PINN(nn.Module):
     def forward(self, t):
         return self.net(t)
 
-# Network outputs: x_nn, y_nn, theta, v_nn, omega_nn
+# Network outputs: x_nn, y_nn, theta, v_nn
 # We'll enforce x,y BCs via transformation; theta and v are free ().
 model = PINN(out_dim=5)
 
