@@ -157,7 +157,7 @@ def train_model(
     plt.ioff()
     plt.close(fig)
 
-    if return_scales:                       # <-- add this block
+        if return_scales:                       # <-- add this block
         scales = {
             "phy":   scale_phy.item(),
             "obs":   scale_obs.item(),

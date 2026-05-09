@@ -164,6 +164,6 @@ def train_model(
             "v":     scale_v.item(),
             "omega": scale_omega.item(),
         }
-        return model, scales
+    return model, scales
 
     return model
