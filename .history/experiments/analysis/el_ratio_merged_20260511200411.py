@@ -23,24 +23,29 @@ def compute_obstacle_terms_circ(x, y, obs, safety=0.03, beta=40):
     dl_dy = derivative(l_obs, y)
     return d, violation, l_obs, dl_dx, dl_dy
 
-def compute_obstacle_terms_rect(x, y, theta, v, obs, safety=0.03, beta=40):
+
+def compute_obstacle_terms_rect(x, y, obs, safety=0.03, beta=40):
     xmin, xmax, ymin, ymax = obs
+    x_c = 0.5 * (xmin + xmax)
+    y_c = 0.5 * (ymin + ymax)
+    hx  = 0.5 * (xmax - xmin)
+    hy  = 0.5 * (ymax - ymin)
 
-    T_L = 0.02
-    x_L = x + v * T_L * torch.cos(theta)
-    y_L = y + v * T_L * torch.sin(theta)
+    qx = torch.abs(x - x_c) - hx
+    qy = torch.abs(y - y_c) - hy
 
-    d = rect_sdf(x_L, y_L, xmin, xmax, ymin, ymax)
+    ox      = F.softplus(qx, beta=50)
+    oy      = F.softplus(qy, beta=50)
+    outside = torch.sqrt(ox**2 + oy**2)
+    inside  = lse_min(lse_max(qx, qy), torch.zeros_like(qx))
+    d       = outside + inside
 
     violation = F.softplus((safety - d), beta=beta)
-    l_obs = violation**2
+    l_obs     = violation**2
+    dl_dx     = derivative(l_obs, x)
+    dl_dy     = derivative(l_obs, y)
+    return d, violation, l_obs, dl_dx, dl_dy
 
-    dl_dx = derivative(l_obs, x)
-    dl_dy = derivative(l_obs, y)
-    dl_dtheta = derivative(l_obs, theta)
-    dl_dv = derivative(l_obs, v)
-
-    return d, violation, l_obs, dl_dx, dl_dy, dl_dtheta, dl_dv
 
 def compute_residuals_and_derivatives(model, t_list, T, BC):
     nn_input = model(t_list)
@@ -82,13 +87,8 @@ def compute_all(model, t_list, T, BC, obs, obstacle_type,
 
     if obstacle_type == "circle":
         _, _, _, dl_dx, dl_dy = compute_obstacle_terms_circ(x, y, obs)
-        dl_dtheta = torch.zeros_like(theta)
-        dl_dv = torch.zeros_like(v)
-
     else:
-        _, _, _, dl_dx, dl_dy, dl_dtheta, dl_dv = compute_obstacle_terms_rect(
-            x, y, theta, v, obs
-        )
+        _, _, _, dl_dx, dl_dy = compute_obstacle_terms_rect(x, y, obs)
 
     scale = lam_obs_eff / (2.0 * lam_phy_eff)
 
@@ -100,17 +100,10 @@ def compute_all(model, t_list, T, BC, obs, obstacle_type,
         "lhs_y":     to_np(r_y_t),
         "rhs_y":     to_np(scale * dl_dy),
         "lhs_v":     to_np(lam_v_eff * v),
-        "rhs_v": to_np(
-            lam_phy_eff * (r_x * torch.cos(theta) + r_y * torch.sin(theta))
-            - 0.5 * lam_obs_eff * dl_dv
-        ),
-
+        "rhs_v":     to_np(lam_phy_eff * (r_x * torch.cos(theta)
+                                          + r_y * torch.sin(theta))),
         "lhs_omega": to_np(lam_omega_eff * omega),
-
-        "rhs_omega": to_np(
-            lam_phy_eff * r_theta
-            - 0.5 * lam_obs_eff * dl_dtheta
-        ),
+        "rhs_omega": to_np(lam_phy_eff * r_theta),
     }
 
 
@@ -200,7 +193,9 @@ def main():
 
     x0, y0 = 0.0, 0.0
     xT, yT = 1.0, 0.0
-    BC = [x0, y0, xT, yT]
+    v0      = 2
+    theta0  = 0
+    BC = [x0, y0, xT, yT, v0, theta0]
 
     # -------------------------
     # Obstacle definitions

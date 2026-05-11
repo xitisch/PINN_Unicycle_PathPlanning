@@ -9,7 +9,7 @@ from src.pinn.train_pinn import train_model
 output_folder = os.path.join("results", "el_evaluation","circ")
 os.makedirs(output_folder, exist_ok=True)
 
-def compute_obstacle_terms(x, y, obs, safety=0.03, beta=40):
+def compute_obstacle_terms(x, y, obs, buffer=0.03, beta=40):
     """
     Computes:
       d           : distance to obstacle center
@@ -20,7 +20,7 @@ def compute_obstacle_terms(x, y, obs, safety=0.03, beta=40):
     x_c, y_c, r = obs
     d = torch.sqrt((x - x_c)**2 + (y - y_c)**2 + 1e-8)
 
-    violation = torch.nn.functional.softplus((r - d + safety), beta=beta)
+    violation = torch.nn.functional.softplus((r - d + buffer), beta=beta)
     l_obs = violation**2
 
     dl_dx = derivative(l_obs, x)

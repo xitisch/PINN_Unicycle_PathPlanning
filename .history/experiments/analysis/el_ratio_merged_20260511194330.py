@@ -14,33 +14,38 @@ os.makedirs(output_folder, exist_ok=True)
 # Helper functions
 # ============================================================
 
-def compute_obstacle_terms_circ(x, y, obs, safety=0.03, beta=40):
+def compute_obstacle_terms_circ(x, y, obs, buffer=0.03, beta=40):
     x_c, y_c, r = obs
     d = torch.sqrt((x - x_c)**2 + (y - y_c)**2 + 1e-8)
-    violation = F.softplus((r - d + safety), beta=beta)
+    violation = F.softplus((r - d + buffer), beta=beta)
     l_obs = violation**2
     dl_dx = derivative(l_obs, x)
     dl_dy = derivative(l_obs, y)
     return d, violation, l_obs, dl_dx, dl_dy
 
-def compute_obstacle_terms_rect(x, y, theta, v, obs, safety=0.03, beta=40):
+
+def compute_obstacle_terms_rect(x, y, obs, buffer=0.03, beta=40):
     xmin, xmax, ymin, ymax = obs
+    x_c = 0.5 * (xmin + xmax)
+    y_c = 0.5 * (ymin + ymax)
+    hx  = 0.5 * (xmax - xmin)
+    hy  = 0.5 * (ymax - ymin)
 
-    T_L = 0.02
-    x_L = x + v * T_L * torch.cos(theta)
-    y_L = y + v * T_L * torch.sin(theta)
+    qx = torch.abs(x - x_c) - hx
+    qy = torch.abs(y - y_c) - hy
 
-    d = rect_sdf(x_L, y_L, xmin, xmax, ymin, ymax)
+    ox      = F.softplus(qx, beta=50)
+    oy      = F.softplus(qy, beta=50)
+    outside = torch.sqrt(ox**2 + oy**2)
+    inside  = lse_min(lse_max(qx, qy), torch.zeros_like(qx))
+    d       = outside + inside
 
-    violation = F.softplus((safety - d), beta=beta)
-    l_obs = violation**2
+    violation = F.softplus((buffer - d), beta=beta)
+    l_obs     = violation**2
+    dl_dx     = derivative(l_obs, x)
+    dl_dy     = derivative(l_obs, y)
+    return d, violation, l_obs, dl_dx, dl_dy
 
-    dl_dx = derivative(l_obs, x)
-    dl_dy = derivative(l_obs, y)
-    dl_dtheta = derivative(l_obs, theta)
-    dl_dv = derivative(l_obs, v)
-
-    return d, violation, l_obs, dl_dx, dl_dy, dl_dtheta, dl_dv
 
 def compute_residuals_and_derivatives(model, t_list, T, BC):
     nn_input = model(t_list)
@@ -64,6 +69,46 @@ def to_np(tensor):
     return tensor.detach().cpu().numpy().flatten()
 
 
+def get_epoch0_scales(BC, obs, obstacle_type, T, N):
+    """
+    Replicates the exact model state at epoch 0 in train_pinn.py
+    using the same manual seed, then computes the initial loss scales.
+    """
+    torch.manual_seed(0)
+    model_init = PINN()
+
+    t_list_init = torch.linspace(0.0, T, N).view(-1, 1)
+    t_list_init.requires_grad_(True)
+
+    scale_phy = phyics_loss(
+        model_init, t_list_init, T, BC
+    ).detach().item()
+
+    if obstacle_type == "circle":
+        scale_obs = circ_obs_loss(
+            model_init, t_list_init, obs, T, BC
+        ).detach().item()
+    else:
+        scale_obs = rect_obs_loss(
+            model_init, t_list_init, obs, T, BC
+        ).detach().item()
+
+    scale_v = v_loss(
+        model_init, t_list_init, T, BC
+    ).detach().item()
+
+    scale_omega = omega_loss(
+        model_init, t_list_init, T, BC
+    ).detach().item()
+
+    return {
+        "phy":   scale_phy,
+        "obs":   scale_obs,
+        "v":     scale_v,
+        "omega": scale_omega,
+    }
+
+
 def effective_weights(scales, lambda_phy, lambda_obs, lambda_v, lambda_omega):
     eps = 1e-8
     return (
@@ -82,13 +127,8 @@ def compute_all(model, t_list, T, BC, obs, obstacle_type,
 
     if obstacle_type == "circle":
         _, _, _, dl_dx, dl_dy = compute_obstacle_terms_circ(x, y, obs)
-        dl_dtheta = torch.zeros_like(theta)
-        dl_dv = torch.zeros_like(v)
-
     else:
-        _, _, _, dl_dx, dl_dy, dl_dtheta, dl_dv = compute_obstacle_terms_rect(
-            x, y, theta, v, obs
-        )
+        _, _, _, dl_dx, dl_dy = compute_obstacle_terms_rect(x, y, obs)
 
     scale = lam_obs_eff / (2.0 * lam_phy_eff)
 
@@ -100,17 +140,10 @@ def compute_all(model, t_list, T, BC, obs, obstacle_type,
         "lhs_y":     to_np(r_y_t),
         "rhs_y":     to_np(scale * dl_dy),
         "lhs_v":     to_np(lam_v_eff * v),
-        "rhs_v": to_np(
-            lam_phy_eff * (r_x * torch.cos(theta) + r_y * torch.sin(theta))
-            - 0.5 * lam_obs_eff * dl_dv
-        ),
-
+        "rhs_v":     to_np(lam_phy_eff * (r_x * torch.cos(theta)
+                                          + r_y * torch.sin(theta))),
         "lhs_omega": to_np(lam_omega_eff * omega),
-
-        "rhs_omega": to_np(
-            lam_phy_eff * r_theta
-            - 0.5 * lam_obs_eff * dl_dtheta
-        ),
+        "rhs_omega": to_np(lam_phy_eff * r_theta),
     }
 
 
@@ -127,58 +160,7 @@ def plot_dual_axis(ax, t_np, lhs, rhs, lhs_label, rhs_label, title):
     ax.tick_params(axis='y',  labelcolor="tab:blue")
     ax2.tick_params(axis='y', labelcolor="tab:red")
     ax.grid(True, alpha=0.3)
-    ax.set_title(title, fontsize=12, pad=12)
-
-
-def plot_trajectory(ax, data, obs_type, obs_def, BC):
-    ax.plot(data["x"], data["y"], linewidth=2.5, color="tab:blue")
-    ax.plot(
-        [BC[0], BC[2]], [BC[1], BC[3]],
-        linestyle="--", alpha=0.5, color="orange"
-    )
-
-    if obs_type == "circle":
-        patch = plt.Circle(
-            (obs_def[0], obs_def[1]), obs_def[2],
-            edgecolor="black", facecolor="#c6d6e3", linewidth=2
-        )
-        ax.add_patch(patch)
-        ax.scatter(obs_def[0], obs_def[1],
-                   marker="x", s=60, color="tab:blue")
-        ax.text(
-            0.02, -0.28,
-            f"c=({obs_def[0]:.2f},{obs_def[1]:.2f})\nr={obs_def[2]:.2f}",
-            fontsize=9, transform=ax.transData
-        )
-        traj_title = "Trajectory (Circle)"
-    else:
-        x_c_r = 0.5 * (obs_def[0] + obs_def[1])
-        y_c_r = 0.5 * (obs_def[2] + obs_def[3])
-        w_r   = obs_def[1] - obs_def[0]
-        h_r   = obs_def[3] - obs_def[2]
-        patch = plt.Rectangle(
-            (obs_def[0], obs_def[2]), w_r, h_r,
-            edgecolor="black", facecolor="#c6d6e3", linewidth=2
-        )
-        ax.add_patch(patch)
-        ax.scatter(x_c_r, y_c_r,
-                   marker="x", s=60, color="tab:blue")
-        ax.text(
-            0.02, -0.28,
-            f"c=({x_c_r:.2f},{y_c_r:.2f})\nw={w_r:.2f}, h={h_r:.2f}",
-            fontsize=9, transform=ax.transData
-        )
-        traj_title = "Trajectory (Rectangle)"
-
-    ax.scatter(BC[0], BC[1], s=60, color="orange", zorder=5)
-    ax.scatter(BC[2], BC[3], s=60, color="green",  zorder=5)
-    ax.set_xlim(-0.05, 1.05)
-    ax.set_ylim(-0.4,  0.5)
-    ax.set_aspect("equal")
-    ax.set_xlabel("x")
-    ax.set_ylabel("y")
-    ax.grid(True, alpha=0.3)
-    ax.set_title(traj_title, fontsize=12, pad=12)
+    ax.set_title(title)
 
 
 # ============================================================
@@ -191,7 +173,7 @@ def main():
     # -------------------------
     T        = 1.0
     N        = 400
-    epochs   = 3000
+    epochs   = 5000
 
     lambda_phy   = 20
     lambda_obs   = 50
@@ -200,20 +182,22 @@ def main():
 
     x0, y0 = 0.0, 0.0
     xT, yT = 1.0, 0.0
-    BC = [x0, y0, xT, yT]
+    v0      = 2
+    theta0  = 0
+    BC = [x0, y0, xT, yT, v0, theta0]
 
     # -------------------------
     # Obstacle definitions
     # -------------------------
     r        = 0.2
     Delta    = 0.1
-    x_c_circ = 0.4
+    x_c_circ = 0.3
     y_c_circ = r - Delta
     obs_circ = [x_c_circ, y_c_circ, r]
 
     w = h        = float(0.2 * np.sqrt(2))
     Delta_rect   = 0.1 * np.sqrt(2) - 0.1
-    x_c_rect     = 0.4
+    x_c_rect     = 0.3
     y_c_rect     = h/2 - Delta_rect
     xmin = x_c_rect - w/2
     xmax = x_c_rect + w/2
@@ -271,6 +255,11 @@ def main():
         lam_obs_r, lam_phy_r, lam_v_r, lam_omega_r
     )
 
+# ============================================================
+    # Combined 5x2 figure
+    # ============================================================
+    fig, axes = plt.subplots(5, 2, figsize=(12, 22))
+
     el_plots = [
         (
             "lhs_x", "rhs_x",
@@ -300,16 +289,63 @@ def main():
         ),
     ]
 
-    # ============================================================
-    # Plot A: 5x2 figure (vertical layout — rows are quantities)
-    # ============================================================
-    fig, axes = plt.subplots(5, 2, figsize=(12, 22))
+    # --- Row 0: Trajectories ---
+    for col, (data, obs_type, obs_def) in enumerate([
+        (circ, "circle",    obs_circ),
+        (rect, "rectangle", obs_rect),
+    ]):
+        ax = axes[0, col]
 
-    # Row 0: Trajectories
-    plot_trajectory(axes[0, 0], circ, "circle",    obs_circ, BC)
-    plot_trajectory(axes[0, 1], rect, "rectangle", obs_rect, BC)
+        ax.plot(data["x"], data["y"], linewidth=2.5, color="tab:blue")
+        ax.plot(
+            [BC[0], BC[2]], [BC[1], BC[3]],
+            linestyle="--", alpha=0.5, color="orange"
+        )
 
-    # Rows 1-4: EL plots
+        if obs_type == "circle":
+            patch = plt.Circle(
+                (obs_def[0], obs_def[1]), obs_def[2],
+                edgecolor="black", facecolor="#c6d6e3", linewidth=2
+            )
+            ax.add_patch(patch)
+            ax.scatter(obs_def[0], obs_def[1],
+                       marker="x", s=60, color="tab:blue")
+            ax.text(
+                0.02, -0.28,
+                f"c=({obs_def[0]:.2f},{obs_def[1]:.2f})\nr={obs_def[2]:.2f}",
+                fontsize=9, transform=ax.transData
+            )
+            traj_title = "Trajectory (Circle)"
+        else:
+            x_c_r = 0.5 * (obs_def[0] + obs_def[1])
+            y_c_r = 0.5 * (obs_def[2] + obs_def[3])
+            w_r   = obs_def[1] - obs_def[0]
+            h_r   = obs_def[3] - obs_def[2]
+            patch = plt.Rectangle(
+                (obs_def[0], obs_def[2]), w_r, h_r,
+                edgecolor="black", facecolor="#c6d6e3", linewidth=2
+            )
+            ax.add_patch(patch)
+            ax.scatter(x_c_r, y_c_r,
+                       marker="x", s=60, color="tab:blue")
+            ax.text(
+                0.02, -0.28,
+                f"c=({x_c_r:.2f},{y_c_r:.2f})\nw={w_r:.2f}, h={h_r:.2f}",
+                fontsize=9, transform=ax.transData
+            )
+            traj_title = "Trajectory (Rectangle)"
+
+        ax.scatter(BC[0], BC[1], s=60, color="orange", zorder=5)
+        ax.scatter(BC[2], BC[3], s=60, color="green",  zorder=5)
+        ax.set_xlim(-0.05, 1.05)
+        ax.set_ylim(-0.4,  0.5)
+        ax.set_aspect("equal")
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        ax.grid(True, alpha=0.3)
+        ax.set_title(traj_title, fontsize=12, pad=12)
+
+    # --- Rows 1-4: EL plots ---
     for row_idx, (lhs_key, rhs_key,
                   lhs_label, rhs_label, title) in enumerate(el_plots):
         for col, (data, obs_label) in enumerate([
@@ -326,49 +362,17 @@ def main():
     fig.suptitle(
         "Euler--Lagrange Numerical Evaluation: "
         "Circle (Left) vs Rectangle (Right)",
-        fontsize=16, y=0.995
+        fontsize=16,
+        y=0.995
     )
     plt.tight_layout(rect=[0, 0, 1, 0.985])
     plt.savefig(
-        os.path.join(output_folder, "EL_combined_5x2.png"),
+          os.path.join(output_folder, "EL_combined_5x2.png"),
         dpi=300
     )
+    plt.show()
     plt.close()
-    print("Saved 5x2 figure.")
-
-    # ============================================================
-    # Plot B: 2x5 figure (horizontal layout — rows are obstacles)
-    # ============================================================
-    fig, axes = plt.subplots(2, 5, figsize=(22, 8))
-
-    for row, (data, obs_type, obs_def) in enumerate([
-        (circ, "circle",    obs_circ),
-        (rect, "rectangle", obs_rect),
-    ]):
-        # Column 0: Trajectory
-        plot_trajectory(axes[row, 0], data, obs_type, obs_def, BC)
-
-        # Columns 1-4: EL plots
-        for col, (lhs_key, rhs_key,
-                  lhs_label, rhs_label, title) in enumerate(el_plots):
-            plot_dual_axis(
-                axes[row, col + 1], t_np,
-                data[lhs_key], data[rhs_key],
-                lhs_label, rhs_label, title
-            )
-
-    fig.suptitle(
-        "Euler--Lagrange Numerical Evaluation: "
-        "Circle (Top) vs Rectangle (Bottom)",
-        fontsize=14, y=0.995
-    )
-    plt.tight_layout(rect=[0, 0, 1, 0.985])
-    plt.savefig(
-        os.path.join(output_folder, "EL_combined_2x5.png"),
-        dpi=300
-    )
-    plt.close()
-    print("Saved 2x5 figure.")
+    print("Saved combined figure.")
 
 
 if __name__ == "__main__":

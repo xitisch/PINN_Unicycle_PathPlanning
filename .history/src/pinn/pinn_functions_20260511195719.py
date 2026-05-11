@@ -55,14 +55,9 @@ def hard_bc_transform(t, nn_data, T, BC):
     x = (T - t) * x0 + t * xT + t * (T - t) * x_nn
     y = (T - t) * y0 + t * yT + t * (T - t) * y_nn
 
-    v_max = 5
-    omega_max = 5
-    v = v_max * torch.tanh(v_nn)
-    omega = omega_max * torch.tanh(omega_nn)
+    return x, y, theta_nn, v_nn, omega_nn
 
-    return x, y, theta_nn, v, omega
-
-def physics_loss(model, t_list, T, BC):
+def phyics_loss(model, t_list, T, BC):
     """
     Input: model, list of time, boundary conditions description (x0,y0,xT,yT)
     Ouptut: loss function value of current position. 
@@ -95,7 +90,7 @@ def circ_obs_loss(model, t_list, obs, T, BC):
 
     safety = 0.03        # Buffer zone
 
-    d = torch.sqrt((x - x_c)**2 + (y - y_c)**2 + 1e-8)
+    d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
     d_sdf = d - r  # this is phi(x,y) for circle, matching eq.\eqref{eq:circsdf}
@@ -117,7 +112,7 @@ def rect_obs_loss(model, t_list, obs, T, BC):
 
 
     # Look-Ahead method
-    T_L = 0.02
+    T_L = 0.1
     x_L = x + v * T_L * torch.cos(theta)
     y_L = y + v * T_L * torch.sin(theta)
 
@@ -159,11 +154,11 @@ def v_loss(model, t_list, T, BC):
 
     return torch.trapz((v**2).squeeze(), t_list.squeeze())
 
-def lse_max(x, y, k=10):
+def lse_max(x, y, k=5):
     sum_stack = torch.stack((k*x, k*y), dim=0)
     return torch.logsumexp(sum_stack, dim=0) / k
 
-def lse_min(x, y, k=10):
+def lse_min(x, y, k=5):
     return -(lse_max(-x, -y, k))
 
 def rect_sdf(x, y, xmin, xmax, ymin, ymax):
@@ -177,9 +172,10 @@ def rect_sdf(x, y, xmin, xmax, ymin, ymax):
     qy = torch.abs(y - y_c) - by
 
     # outside distance
-    ox = F.softplus(qx, beta=40)
-    oy = F.softplus(qy, beta=40)
-
+    ox = F.softplus(qx, beta=5)
+    oy = F.softplus(qy, beta=5)
+    # ox = torch.relu(qx)
+    # oy = torch.relu(qy)
     outside = torch.sqrt(ox**2 + oy**2)
 
     # inside term (negative or 0)

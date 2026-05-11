@@ -71,6 +71,11 @@ ax = plt.gca()
 obstacle_circle = plt.Circle((x_c, y_c), r, color='r', fill=True, alpha=0.3, label='Obstacle')
 ax.add_patch(obstacle_circle)
 
+"""
+rect = patches.Rectangle((xmin, ymin), w, h)
+ax.add_patch(rect)
+"""
+
 plt.legend()
 plt.show()
 

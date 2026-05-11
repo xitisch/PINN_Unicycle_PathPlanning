@@ -82,13 +82,8 @@ def compute_all(model, t_list, T, BC, obs, obstacle_type,
 
     if obstacle_type == "circle":
         _, _, _, dl_dx, dl_dy = compute_obstacle_terms_circ(x, y, obs)
-        dl_dtheta = torch.zeros_like(theta)
-        dl_dv = torch.zeros_like(v)
-
     else:
-        _, _, _, dl_dx, dl_dy, dl_dtheta, dl_dv = compute_obstacle_terms_rect(
-            x, y, theta, v, obs
-        )
+        _, _, _, dl_dx, dl_dy = compute_obstacle_terms_rect(x, y, obs)
 
     scale = lam_obs_eff / (2.0 * lam_phy_eff)
 
@@ -100,17 +95,10 @@ def compute_all(model, t_list, T, BC, obs, obstacle_type,
         "lhs_y":     to_np(r_y_t),
         "rhs_y":     to_np(scale * dl_dy),
         "lhs_v":     to_np(lam_v_eff * v),
-        "rhs_v": to_np(
-            lam_phy_eff * (r_x * torch.cos(theta) + r_y * torch.sin(theta))
-            - 0.5 * lam_obs_eff * dl_dv
-        ),
-
+        "rhs_v":     to_np(lam_phy_eff * (r_x * torch.cos(theta)
+                                          + r_y * torch.sin(theta))),
         "lhs_omega": to_np(lam_omega_eff * omega),
-
-        "rhs_omega": to_np(
-            lam_phy_eff * r_theta
-            - 0.5 * lam_obs_eff * dl_dtheta
-        ),
+        "rhs_omega": to_np(lam_phy_eff * r_theta),
     }
 
 

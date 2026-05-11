@@ -159,11 +159,11 @@ def v_loss(model, t_list, T, BC):
 
     return torch.trapz((v**2).squeeze(), t_list.squeeze())
 
-def lse_max(x, y, k=10):
+def lse_max(x, y, k=5):
     sum_stack = torch.stack((k*x, k*y), dim=0)
     return torch.logsumexp(sum_stack, dim=0) / k
 
-def lse_min(x, y, k=10):
+def lse_min(x, y, k=5):
     return -(lse_max(-x, -y, k))
 
 def rect_sdf(x, y, xmin, xmax, ymin, ymax):
@@ -177,8 +177,8 @@ def rect_sdf(x, y, xmin, xmax, ymin, ymax):
     qy = torch.abs(y - y_c) - by
 
     # outside distance
-    ox = F.softplus(qx, beta=40)
-    oy = F.softplus(qy, beta=40)
+    ox = F.softplus(qx, beta=5)
+    oy = F.softplus(qy, beta=5)
 
     outside = torch.sqrt(ox**2 + oy**2)
 
