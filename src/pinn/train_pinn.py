@@ -105,7 +105,7 @@ def train_model(
     for epoch in range(epochs):
         optimizer.zero_grad()
 
-        L_phy = physics_loss(model, t_list, T, BC)
+        L_phy = phyics_loss(model, t_list, T, BC)
 
         L_obs = torch.tensor(0.0, device=device)
 
@@ -157,12 +157,12 @@ def train_model(
     plt.ioff()
     plt.close(fig)
 
-    if return_scales:                       # <-- add this block
+    if return_scales:
         scales = {
             "phy":   scale_phy.item(),
             "obs":   scale_obs.item(),
             "v":     scale_v.item(),
-            "omega": scale_omega.item(),
+            "omega": scale_omega.item()
         }
         return model, scales
 

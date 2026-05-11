@@ -17,10 +17,16 @@ class PINN(nn.Module):
         layers += [nn.Linear(width, out_dim)]
         self.net = nn.Sequential(*layers)
 
+        """# Optional: small init helps stability in PINNs
+        for m in self.net:
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_uniform_(m.weight)
+                nn.init.zeros_(m.bias)"""
+
     def forward(self, t):
         return self.net(t)
 
-# Network outputs: x_nn, y_nn, theta, v_nn, omega_nn
+# Network outputs: x_nn, y_nn, theta, v_nn
 # We'll enforce x,y BCs via transformation; theta and v are free ().
 model = PINN(out_dim=5)
 
@@ -52,17 +58,19 @@ def hard_bc_transform(t, nn_data, T, BC):
     xT = BC[2]
     yT = BC[3]
 
+    vmax = 2
+    omegamax = 2
+    
+    v = vmax*torch.tanh(v_nn)
+
+    omega = omegamax*torch.tanh(omega_nn)
+
     x = (T - t) * x0 + t * xT + t * (T - t) * x_nn
     y = (T - t) * y0 + t * yT + t * (T - t) * y_nn
 
-    v_max = 5
-    omega_max = 5
-    v = v_max * torch.tanh(v_nn)
-    omega = omega_max * torch.tanh(omega_nn)
-
     return x, y, theta_nn, v, omega
 
-def physics_loss(model, t_list, T, BC):
+def phyics_loss(model, t_list, T, BC):
     """
     Input: model, list of time, boundary conditions description (x0,y0,xT,yT)
     Ouptut: loss function value of current position. 
@@ -87,19 +95,17 @@ def circ_obs_loss(model, t_list, obs, T, BC):
     Ouptut: loss function value of current position. 
     """
     nn_input = model(t_list)
-    x, y, theta, v, _ = hard_bc_transform(t_list, nn_input, T, BC)
+    x, y, _, _, _ = hard_bc_transform(t_list, nn_input, T, BC)
 
     x_c = obs[0]
     y_c = obs[1]
     r = obs[2]
+    d = torch.sqrt((x - x_c)**2 + (y - y_c)**2)
 
-    safety = 0.03        # Buffer zone
-
-    d = torch.sqrt((x - x_c)**2 + (y - y_c)**2 + 1e-8)
+    safety = 0.03        # safety zone
 
     # Obstacle avoidance loss (positive within a certain range of the obstacle center)
-    d_sdf = d - r  # this is phi(x,y) for circle, matching eq.\eqref{eq:circsdf}
-    violation = F.softplus((safety - d_sdf), beta=40)
+    violation = F.softplus((r-d+safety), beta=40)
     return torch.trapz((violation**2).squeeze(), t_list.squeeze())
 
 def rect_obs_loss(model, t_list, obs, T, BC):
@@ -115,18 +121,17 @@ def rect_obs_loss(model, t_list, obs, T, BC):
     ymin = obs[2]
     ymax = obs[3]
 
-
     # Look-Ahead method
-    T_L = 0.02
+    T_L = 0
     x_L = x + v * T_L * torch.cos(theta)
     y_L = y + v * T_L * torch.sin(theta)
 
     d_sdf = rect_sdf(x_L, y_L, xmin, xmax, ymin, ymax)
 
-    safety = 0.03        # Buffer zone
+    safety = 0.03        # safety zone
 
-    # Obstacle avoidance loss
-    violation = F.softplus((safety - d_sdf), beta=40)
+    # Obstacle avoidance loss (positive within a certain range of the obstacle center)
+    violation = F.softplus((safety-d_sdf), beta=40)
     return torch.trapz((violation**2).squeeze(), t_list.squeeze())
 
 def smooth_loss(model, t_list, T, BC):
@@ -159,11 +164,11 @@ def v_loss(model, t_list, T, BC):
 
     return torch.trapz((v**2).squeeze(), t_list.squeeze())
 
-def lse_max(x, y, k=10):
+def lse_max(x, y, k=5):
     sum_stack = torch.stack((k*x, k*y), dim=0)
     return torch.logsumexp(sum_stack, dim=0) / k
 
-def lse_min(x, y, k=10):
+def lse_min(x, y, k=5):
     return -(lse_max(-x, -y, k))
 
 def rect_sdf(x, y, xmin, xmax, ymin, ymax):
@@ -177,9 +182,10 @@ def rect_sdf(x, y, xmin, xmax, ymin, ymax):
     qy = torch.abs(y - y_c) - by
 
     # outside distance
-    ox = F.softplus(qx, beta=40)
-    oy = F.softplus(qy, beta=40)
-
+    ox = F.softplus(qx, beta=50)
+    oy = F.softplus(qy, beta=50)
+    # ox = torch.relu(qx)
+    # oy = torch.relu(qy)
     outside = torch.sqrt(ox**2 + oy**2)
 
     # inside term (negative or 0)
